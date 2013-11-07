@@ -1,4 +1,4 @@
-``docopt.cpp``: a C++11 port for docopt-py
+``docopt.cpp``: a C++11 port of docopt
 ======================================================================
 
 Isn't it awesome how ``getopt`` (and ``boost::program_options`` for you fancy
@@ -40,10 +40,11 @@ and instead can write only the help message--*the way you want it*.
 
     int main(int argc, const char** argv)
     {
-        std::map<std::string, docopt::value> args = docopt::docopt(USAGE, 
-                                                      { argv + 1, argv + argc },
-                                                      true,               // show help if requested
-                                                      "Naval Fate 2.0");  // version string
+        std::map<std::string, docopt::value> args 
+            = docopt::docopt(USAGE, 
+                             { argv + 1, argv + argc },
+                             true,               // show help if requested
+                             "Naval Fate 2.0");  // version string
 
         for(auto const& arg : args) {
             std::cout << arg.first <<  arg.second << std::endl;
@@ -70,9 +71,9 @@ original.
 This port is written in C++11 and also requires a good C++11 standard library
 (in particular, one with ``regex`` support). The following compilers should
 be able to handle this:
- * clang 3.3
- * gcc 4.9 (If someone can verify this, or provide patches, that would be great!)
- * Visual C++ 2013 will almost certainly *not* compile this code. Hopefully next year.
+* clang 3.3
+* gcc 4.9 (If someone can verify this, or provide patches, that would be great!)
+* Visual C++ 2013: will *not* compile this code. Hopefully next year.
 
 This port is licensed under the MIT license, just like the original module.
 However, we are also dual-licensing this code under the Boost License, version 1.0,
@@ -153,7 +154,7 @@ arguments and commands as keys, spelled exactly like in your help message.
 Long versions of options are given priority. For example, if you invoke the
 top example as::
 
-    naval_fate.py ship Guardian move 100 150 --speed=15
+    naval_fate ship Guardian move 100 150 --speed=15
 
 the return dictionary will be:
 
@@ -196,7 +197,7 @@ Minimum example:
 
 .. code:: python
 
-    """Usage: my_program.py
+    """Usage: my_program
 
     """
 
@@ -206,8 +207,8 @@ exclusive patterns:
 
 .. code:: python
 
-    """Usage: my_program.py FILE
-              my_program.py COUNT FILE
+    """Usage: my_program FILE
+              my_program COUNT FILE
 
     """
 
@@ -356,24 +357,6 @@ source if in doubt.
 There are also very intersting applications and ideas at that page. 
 Check out the sister project for more information!
 
-Compiling the code and running the tests
-----------------------------------------------------------------------
-The original Python module includes some language-agnostic unit tests,
-and these can be run with this port as well.
-
-For example, with the clang compiler on OSX:
- $ clang++ --std=c++11 --stdlib=libc++ docopt.cpp run_testcase.cpp -o run_testcase
- $ python run_tests.py
- PASS (175) 
-
-You can also compile the example show at the start (also included as
-example.cpp):
- $ clang++ clang++ --std=c++11 --stdlib=libc++ -I . docopt.cpp examples/naval_fate.cpp -o naval_fate
- $ ./naval_fate --help
-    [ ... ]
- $ ./naval_fate ship Guardian move 100 150 --speed=15
-    [ ... ]
-
 Subparsers, multi-level help and *huge* applications (like git)
 ----------------------------------------------------------------------
 
@@ -385,6 +368,24 @@ parameter (described in API section above). To get you started quickly
 we implemented a subset of git command-line interface as an example:
 `examples/git
 <https://github.com/docopt/docopt/tree/master/examples/git>`_
+
+Compiling the code and running the tests
+----------------------------------------------------------------------
+The original Python module includes some language-agnostic unit tests,
+and these can be run with this port as well.
+
+For example, with the clang compiler on OSX:
+  $ clang++ --std=c++11 --stdlib=libc++ docopt.cpp run_testcase.cpp -o run_testcase
+  $ python run_tests.py
+  PASS (175) 
+
+You can also compile the example show at the start (also included as
+example.cpp):
+  $ clang++ clang++ --std=c++11 --stdlib=libc++ -I . docopt.cpp examples/naval_fate.cpp -o naval_fate
+  $ ./naval_fate --help
+   [ ... ]
+  $ ./naval_fate ship Guardian move 100 150 --speed=15
+   [ ... ]
 
 Development
 ======================================================================
