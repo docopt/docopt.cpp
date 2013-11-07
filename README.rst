@@ -1,7 +1,7 @@
-``docopt.cpp``: A C++11 port of the Python ``docopt``
-=====================================================
-creates *beautiful* command-line interfaces
--------------------------------------------
+``docopt.cpp``: A C++11 Port
+============================
+doctopt creates *beautiful* command-line interfaces
+---------------------------------------------------
 
 Isn't it awesome how ``getopt`` (and ``boost::program_options`` for you fancy
 folk!) generate help messages based on your code?! These timeless functions
@@ -64,7 +64,7 @@ that. The basic idea is that *a good help message has all necessary
 information in it to make a parser*.
 
 C++11 port details
-======================================================================
+---------------------------------------------------
 
 This is a port of the ``docopt.py`` module (https://github.com/docopt/docopt),
 and we have tried to maintain full feature parity (and code structure) as the
@@ -85,18 +85,18 @@ use this code under the terms of either license.
 
 The differences from the Python port are:
 
- * the addition of a ``docopt_parse`` function, which does not terminate
-   the program on error
- * a ``docopt::value`` type to hold the various value types that can be parsed.
-   We considered using boost::variant, but it seems better to have no external
-   dependencies (beyond a good STL).
- * because C++ is statically-typed and Python is not, we had to make some 
-   changes to the interfaces of the internal parse tree types. 
- * because ``std::regex`` does not have an equivalent to Python's regex.split,
-   some of the regex's had to be restructured and additional loops used.
+* the addition of a ``docopt_parse`` function, which does not terminate
+  the program on error
+* a ``docopt::value`` type to hold the various value types that can be parsed.
+  We considered using boost::variant, but it seems better to have no external
+  dependencies (beyond a good STL).
+* because C++ is statically-typed and Python is not, we had to make some 
+  changes to the interfaces of the internal parse tree types. 
+* because ``std::regex`` does not have an equivalent to Python's regex.split,
+  some of the regex's had to be restructured and additional loops used.
 
 API
-======================================================================
+---------------------------------------------------
 
 .. code:: c++
 
@@ -174,7 +174,7 @@ the return dictionary will be:
      "<y>": "150"}
 
 Help message format
-======================================================================
+---------------------------------------------------
 
 Help message consists of 2 parts:
 
@@ -373,7 +373,7 @@ we implemented a subset of git command-line interface as an example:
 `examples/git
 <https://github.com/docopt/docopt/tree/master/examples/git>`_
 
-Compiling the code and running the tests
+Compiling the example / Running the tests
 ----------------------------------------------------------------------
 The original Python module includes some language-agnostic unit tests,
 and these can be run with this port as well.
@@ -394,7 +394,7 @@ example.cpp)::
    [ ... ]
 
 Development
-======================================================================
+---------------------------------------------------
 
 Comments and suggestions are *very* welcome! If you find issues, please 
 file them and help improve our code!
@@ -405,7 +405,7 @@ we might want to first negotiate these changes into the Python code first.
 However, bring it up! Let's hear it!
 
 Changelog
-======================================================================
+---------------------------------------------------
 
 **docopt** follows `semantic versioning <http://semver.org>`_.  The
 first release with stable API will be 1.0.0 (soon).
