@@ -11,3 +11,8 @@
 *.lai
 *.la
 *.a
+
+# Compiled examples, as per docs
+example
+naval_fate
+run_testcase
