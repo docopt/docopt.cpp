@@ -1,5 +1,7 @@
-``docopt.cpp``: a C++11 port of docopt
-======================================================================
+``docopt.cpp``: A C++11 port of the Python ``docopt``
+=====================================================
+creates *beautiful* command-line interfaces
+-------------------------------------------
 
 Isn't it awesome how ``getopt`` (and ``boost::program_options`` for you fancy
 folk!) generate help messages based on your code?! These timeless functions
@@ -71,9 +73,10 @@ original.
 This port is written in C++11 and also requires a good C++11 standard library
 (in particular, one with ``regex`` support). The following compilers should
 be able to handle this:
-* clang 3.3
-* gcc 4.9 (If someone can verify this, or provide patches, that would be great!)
-* Visual C++ 2013: will *not* compile this code. Hopefully next year.
+
+- clang 3.3
+- gcc 4.9 (If someone can verify this, or provide patches, that would be great!)
+- Visual C++ 2013: will *not* compile this code. Hopefully next year.
 
 This port is licensed under the MIT license, just like the original module.
 However, we are also dual-licensing this code under the Boost License, version 1.0,
@@ -81,6 +84,7 @@ as this is a popular C++ license. The licenses are similar and you are free to
 use this code under the terms of either license.
 
 The differences from the Python port are:
+
  * the addition of a ``docopt_parse`` function, which does not terminate
    the program on error
  * a ``docopt::value`` type to hold the various value types that can be parsed.
@@ -96,7 +100,7 @@ API
 
 .. code:: c++
 
-    docopt::docopt(doc, argv, help=true, version="", options_first=false)
+    docopt::docopt(doc, argv, help /* =true */, version /* ="" */, options_first /* =false */)
 
 ``docopt`` takes 1 required and 4 optional arguments:
 
@@ -374,13 +378,15 @@ Compiling the code and running the tests
 The original Python module includes some language-agnostic unit tests,
 and these can be run with this port as well.
 
-For example, with the clang compiler on OSX:
+For example, with the clang compiler on OSX::
+
   $ clang++ --std=c++11 --stdlib=libc++ docopt.cpp run_testcase.cpp -o run_testcase
   $ python run_tests.py
   PASS (175) 
 
 You can also compile the example show at the start (also included as
-example.cpp):
+example.cpp)::
+
   $ clang++ clang++ --std=c++11 --stdlib=libc++ -I . docopt.cpp examples/naval_fate.cpp -o naval_fate
   $ ./naval_fate --help
    [ ... ]
