@@ -102,7 +102,7 @@ API
 
     docopt::docopt(doc, argv, help /* =true */, version /* ="" */, options_first /* =false */)
 
-``docopt`` takes 1 required and 4 optional arguments:
+``docopt`` takes 2 required and 3 optional arguments:
 
 - ``doc`` is a string that contains a **help message** that will be parsed to
   create the option parser.  The simple rules of how to write such a
@@ -112,7 +112,7 @@ API
 
 .. code:: c++
 
-    R"(Usage: my_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
+    R"(Usage: my_program [-hso FILE] [--quiet | --verbose] [INPUT ...]
 
     -h --help    show this
     -s --sorted  sorted output
@@ -173,6 +173,18 @@ the return dictionary will be:
      "<x>": "100",           "shoot": false,
      "<y>": "150"}
 
+If any parsing error (in either the usage, or due to incorrect user inputs) is
+encountered, the program will exit with exit code -1.
+
+Note that there is another function that does not exit on error, and instead will
+propogate an exception that you can catch and process as you like. See the docopt.h file
+for information on the exceptions and usage:
+
+.. code:: c++
+
+    docopt::docopt_parse(doc, argv, help /* =true */, version /* =true */, options_first /* =false)
+
+
 Help message format
 ---------------------------------------------------
 
@@ -180,7 +192,7 @@ Help message consists of 2 parts:
 
 - Usage pattern, e.g.::
 
-    Usage: my_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
+    Usage: my_program [-hso FILE] [--quiet | --verbose] [INPUT ...]
 
 - Option descriptions, e.g.::
 
@@ -219,8 +231,8 @@ exclusive patterns:
 Each pattern can consist of the following elements:
 
 - **<arguments>**, **ARGUMENTS**. Arguments are specified as either
-  upper-case words, e.g. ``my_program.py CONTENT-PATH`` or words
-  surrounded by angular brackets: ``my_program.py <content-path>``.
+  upper-case words, e.g. ``my_program CONTENT-PATH`` or words
+  surrounded by angular brackets: ``my_program <content-path>``.
 - **--options**.  Options are words started with dash (``-``), e.g.
   ``--output``, ``-o``.  You can "stack" several of one-letter
   options, e.g. ``-oiv`` which will be the same as ``-o -i -v``. The
@@ -236,23 +248,23 @@ Each pattern can consist of the following elements:
 
 Use the following constructs to specify patterns:
 
-- **[ ]** (brackets) **optional** elements.  e.g.: ``my_program.py
+- **[ ]** (brackets) **optional** elements.  e.g.: ``my_program
   [-hvqo FILE]``
 - **( )** (parens) **required** elements.  All elements that are *not*
-  put in **[ ]** are also required, e.g.: ``my_program.py
-  --path=<path> <file>...`` is the same as ``my_program.py
+  put in **[ ]** are also required, e.g.: ``my_program
+  --path=<path> <file>...`` is the same as ``my_program
   (--path=<path> <file>...)``.  (Note, "required options" might be not
   a good idea for your users).
 - **|** (pipe) **mutually exclusive** elements. Group them using **(
   )** if one of the mutually exclusive elements is required:
-  ``my_program.py (--clockwise | --counter-clockwise) TIME``. Group
+  ``my_program (--clockwise | --counter-clockwise) TIME``. Group
   them using **[ ]** if none of the mutually-exclusive elements are
-  required: ``my_program.py [--left | --right]``.
+  required: ``my_program [--left | --right]``.
 - **...** (ellipsis) **one or more** elements. To specify that
   arbitrary number of repeating elements could be accepted, use
-  ellipsis (``...``), e.g.  ``my_program.py FILE ...`` means one or
+  ellipsis (``...``), e.g.  ``my_program FILE ...`` means one or
   more ``FILE``-s are accepted.  If you want to accept zero or more
-  elements, use brackets, e.g.: ``my_program.py [FILE ...]``. Ellipsis
+  elements, use brackets, e.g.: ``my_program [FILE ...]``. Ellipsis
   works as a unary operator on the expression to the left.
 - **[options]** (case sensitive) shortcut for any options.  You can
   use it if you want to specify that the usage pattern could be
@@ -268,7 +280,7 @@ Use the following constructs to specify patterns:
 If your pattern allows to match argument-less option (a flag) several
 times::
 
-    Usage: my_program.py [-v | -vv | -vvv]
+    Usage: my_program [-v | -vv | -vvv]
 
 then number of occurrences of the option will be counted. I.e.
 ``args['-v']`` will be ``2`` if program was invoked as ``my_program
@@ -278,9 +290,9 @@ If your usage patterns allows to match same-named option with argument
 or positional argument several times, the matched arguments will be
 collected into a list::
 
-    Usage: my_program.py <file> <file> --path=<path>...
+    Usage: my_program <file> <file> --path=<path>...
 
-I.e. invoked with ``my_program.py file1 file2 --path=./here
+I.e. invoked with ``my_program file1 file2 --path=./here
 --path=./there`` the returned dict will contain ``args['<file>'] ==
 ['file1', 'file2']`` and ``args['--path'] == ['./here', './there']``.
 
@@ -337,7 +349,7 @@ The rules are as follows:
   will be interpreted as string.  If it *is* repeatable, it will be
   splited into a list on whitespace::
 
-    Usage: my_program.py [--repeatable=<arg> --repeatable=<arg>]
+    Usage: my_program [--repeatable=<arg> --repeatable=<arg>]
                          [--another-repeatable=<arg>]...
                          [--not-repeatable=<arg>]
 
@@ -378,20 +390,34 @@ Compiling the example / Running the tests
 The original Python module includes some language-agnostic unit tests,
 and these can be run with this port as well.
 
-For example, with the clang compiler on OSX::
+The tests are a Python driver that uses the testcases.docopt file to then invoke
+a C++ test case runner (run_testcase.cpp)::
 
   $ clang++ --std=c++11 --stdlib=libc++ docopt.cpp run_testcase.cpp -o run_testcase
   $ python run_tests.py
   PASS (175) 
 
-You can also compile the example show at the start (also included as
-example.cpp)::
+You can also compile the example shown at the start (included as example.cpp)::
 
-  $ clang++ clang++ --std=c++11 --stdlib=libc++ -I . docopt.cpp examples/naval_fate.cpp -o naval_fate
+  $ clang++ --std=c++11 --stdlib=libc++ -I . docopt.cpp examples/naval_fate.cpp -o naval_fate
   $ ./naval_fate --help
    [ ... ]
   $ ./naval_fate ship Guardian move 100 150 --speed=15
-   [ ... ]
+  --drifting: false
+  --help: false
+  --moored: false
+  --speed: "15"
+  --version: false
+  <name>: ["Guardian"]
+  <x>: "100"
+  <y>: "150"
+  mine: false
+  move: true
+  new: false
+  remove: false
+  set: false
+  ship: true
+  shoot: false
 
 Development
 ---------------------------------------------------
