@@ -589,7 +589,7 @@ std::vector<std::string> longOptions(I iter, I end) {
 	std::vector<std::string> ret;
 	std::transform(iter, end,
 		       std::back_inserter(ret),
-		       [](decltype(*iter) const& opt) { return opt->longOption(); });
+		       [](typename I::reference opt) { return opt->longOption(); });
 	return ret;
 }
 
