@@ -547,8 +547,16 @@ std::vector<T*> flat_filter(Pattern& pattern) {
 }
 
 std::vector<std::string> parse_section(std::string const& name, std::string const& source) {
+	// ECMAScript regex only has "?=" for a non-matching lookahead. In order to make sure we always have
+	// a newline to anchor our matching, we have to avoid matching the final newline of each grouping.
+	// Therefore, our regex is adjusted from the docopt Python one to use ?= to match the newlines before
+	// the following lines, rather than after.
 	std::regex const re_section_pattern {
-		"(?:^|\\n)([^\\n]*" + name + "[^\\n]*\\n?(?:[ \\t].*?(?:\\n|$))*)",
+		"(?:^|\\n)"  // anchored at a linebreak (or start of string)
+		"("
+		   "[^\\n]*" + name + "[^\\n]*(?=\\n?)" // a line that contains the name
+		   "(?:\\n[ \\t].*?(?=\\n|$))*"         // followed by any number of lines that are indented
+		")",
 		std::regex::icase
 	};
 	
