@@ -71,12 +71,15 @@ and we have tried to maintain full feature parity (and code structure) as the
 original.
 
 This port is written in C++11 and also requires a good C++11 standard library
-(in particular, one with ``regex`` support). The following compilers should
-be able to handle this:
+(in particular, one with ``regex`` support). The following compilers are known
+to work with docopt:
 
-- clang 3.3
-- gcc 4.9 (If someone can verify this, or provide patches, that would be great!)
-- Visual C++ 2013: will *not* compile this code. Hopefully next year.
+- clang 3.3 and later
+- gcc 4.9
+
+Note that gcc-4.8 will not work due to its missing the ``regex`` module. 
+Note that Visual C++ 2013 will not compile this code, as its C++11 is not
+quite good enough. If a later VC++ works, please let me know!
 
 This port is licensed under the MIT license, just like the original module.
 However, we are also dual-licensing this code under the Boost License, version 1.0,
@@ -436,4 +439,5 @@ Changelog
 **docopt** follows `semantic versioning <http://semver.org>`_.  The
 first release with stable API will be 1.0.0 (soon).
 
-- 0.6.4.1 The initial C++ port of docopt.py
+- 0.6.1 The initial C++ port of docopt.py
+
