@@ -174,23 +174,33 @@ Option Option::parse(std::string const& option_description)
 	}
 	
 	static const std::regex pattern {"(--|-)?(.*?)([,= ]|$)"};
-	std::for_each(std::sregex_iterator{option_description.begin(), options_end, pattern},
-		      std::sregex_iterator{},
-		      [&](std::smatch const& match)
-		      {
-			      if (match[1].matched) {
-				      if (match[1].length()==1) {
-					      shortOption = "-" + match[2].str();
-				      } else {
-					      longOption =  "--" + match[2].str();
-				      }
-			      } else if (match[2].matched && match[2].length()) {
-				      argcount = 1;
-			      } else {
-				      // delimeter
-			      }
-		      });
-	
+	for(std::sregex_iterator i {option_description.begin(), options_end, pattern, std::regex_constants::match_not_null},
+	       e{};
+	    i != e;
+	    ++i)
+	{
+		std::smatch const& match = *i;
+		if (match[1].matched) { // [1] is optional.
+			if (match[1].length()==1) {
+				shortOption = "-" + match[2].str();
+			} else {
+				longOption =  "--" + match[2].str();
+			}
+		} else if (match[2].length() > 0) { // [2] always matches.
+			std::string m = match[2];
+			argcount = 1;
+		} else {
+			// delimeter
+		}
+
+		if (match[3].length() == 0) { // [3] always matches.
+			// Hit end of string. For some reason 'match_not_null' will let us match empty
+			// at the end, and then we'll spin in an infinite loop. So, if we hit an empty
+			// match, we know we must be at the end.
+			break;
+		}
+	}
+
 	if (argcount) {
 		std::smatch match;
 		if (std::regex_search(options_end, option_description.end(),
@@ -537,8 +547,16 @@ std::vector<T*> flat_filter(Pattern& pattern) {
 }
 
 std::vector<std::string> parse_section(std::string const& name, std::string const& source) {
+	// ECMAScript regex only has "?=" for a non-matching lookahead. In order to make sure we always have
+	// a newline to anchor our matching, we have to avoid matching the final newline of each grouping.
+	// Therefore, our regex is adjusted from the docopt Python one to use ?= to match the newlines before
+	// the following lines, rather than after.
 	std::regex const re_section_pattern {
-		"(?:^|\\n)([^\\n]*" + name + "[^\\n]*\\n?(?:[ \\t].*?(?:\\n|$))*)",
+		"(?:^|\\n)"  // anchored at a linebreak (or start of string)
+		"("
+		   "[^\\n]*" + name + "[^\\n]*(?=\\n?)" // a line that contains the name
+		   "(?:\\n[ \\t].*?(?=\\n|$))*"         // followed by any number of lines that are indented
+		")",
 		std::regex::icase
 	};
 	
@@ -571,7 +589,7 @@ std::vector<std::string> longOptions(I iter, I end) {
 	std::vector<std::string> ret;
 	std::transform(iter, end,
 		       std::back_inserter(ret),
-		       [](decltype(*iter) const& opt) { return opt->longOption(); });
+		       [](typename I::reference opt) { return opt->longOption(); });
 	return ret;
 }
 
