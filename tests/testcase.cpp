@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 Jared Grubb. All rights reserved.
 //
 
-#include "docopt.h"
+#include "../include/docopt.h"
 
 #include <iostream>
 
