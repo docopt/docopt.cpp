@@ -12,6 +12,7 @@
 #include <vector>
 #include <memory>
 #include <unordered_set>
+#include <stdexcept>
 
 #include "docopt_value.h"
 

@@ -14,6 +14,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <stdexcept>
 
 namespace docopt {
 
