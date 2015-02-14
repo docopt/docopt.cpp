@@ -18,16 +18,16 @@
 namespace docopt {
 
 // Usage string could not be parsed (ie, the developer did something wrong)
-struct DocoptLanguageError : std::runtime_error { using runtime_error::runtime_error; };
+struct DocoptLanguageError : public std::runtime_error { using runtime_error::runtime_error; };
 
 // Arguments passed by user were incorrect (ie, developer was good, user is wrong)
-struct DocoptArgumentError : std::runtime_error { using runtime_error::runtime_error; };
+struct DocoptArgumentError : public std::runtime_error { using runtime_error::runtime_error; };
 
 // Arguments contained '--help' and parsing was aborted early
-struct DocoptExitHelp : std::runtime_error { DocoptExitHelp(); };
+struct DocoptExitHelp : public std::runtime_error { DocoptExitHelp(); };
 
 // Arguments contained '--version' and parsing was aborted early
-struct DocoptExitVersion : std::runtime_error { DocoptExitVersion(); };
+struct DocoptExitVersion : public std::runtime_error { DocoptExitVersion(); };
 
 /// Parse user options from the given option string.
 ///

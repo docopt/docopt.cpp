@@ -13,6 +13,9 @@
 #pragma mark -
 #pragma mark General utility
 
+#include <string>
+#include <vector>
+
 namespace {
 bool starts_with(std::string const& str, std::string const& prefix)
 {
