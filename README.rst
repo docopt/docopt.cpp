@@ -2,6 +2,7 @@
 ============================
 doctopt creates *beautiful* command-line interfaces
 ---------------------------------------------------
+[![Build Status](https://travis-ci.org/DanTheColoradan/docopt.cpp.svg?branch=master)](https://travis-ci.org/DanTheColoradan/docopt.cpp)
 
 Isn't it awesome how ``getopt`` (and ``boost::program_options`` for you fancy
 folk!) generate help messages based on your code?! These timeless functions
