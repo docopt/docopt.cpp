@@ -2,6 +2,7 @@
 ============================
 doctopt creates *beautiful* command-line interfaces
 ---------------------------------------------------
+[![Build Status](https://travis-ci.org/DanTheColoradan/docopt.cpp.svg?branch=master)](https://travis-ci.org/DanTheColoradan/docopt.cpp)
 
 [![Build Status](https://travis-ci.org/DanTheColoradan/docopt.cpp.svg?branch=master)](https://travis-ci.org/DanTheColoradan/docopt.cpp)
 
