@@ -22,7 +22,7 @@ if(WITH_STATIC)
 endif()
 add_library(docopt SHARED ${DOCOPT_SRC})
 
-add_definitions("-std=c++14")
+add_definitions("-std=c++11")
 
 ########################################################################
 # tests
