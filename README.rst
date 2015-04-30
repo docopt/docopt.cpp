@@ -74,12 +74,11 @@ This port is written in C++11 and also requires a good C++11 standard library
 (in particular, one with ``regex`` support). The following compilers are known
 to work with docopt:
 
-- clang 3.3 and later
-- gcc 4.9
+- Clang 3.3 and later
+- GCC 4.9
+- Visual C++ 2015 RC
 
-Note that gcc-4.8 will not work due to its missing the ``regex`` module. 
-Note that Visual C++ 2013 will not compile this code, as its C++11 is not
-quite good enough. If a later VC++ works, please let me know!
+Note that GCC-4.8 will not work due to its missing the ``regex`` module. 
 
 This port is licensed under the MIT license, just like the original module.
 However, we are also dual-licensing this code under the Boost License, version 1.0,
