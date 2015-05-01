@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 Jared Grubb. All rights reserved.
 //
 
-#include "docopt.h"
+#include "../include/docopt.h"
 
 #include <iostream>
 
@@ -16,10 +16,10 @@ int main(int argc, const char** argv)
 		std::cerr << "Usage: docopt_tests USAGE [arg]..." << std::endl;
 		exit(-5);
 	}
-	
+
 	std::string usage = argv[1];
 	std::vector<std::string> args {argv+2, argv+argc};
-	
+
 	auto result = docopt::docopt(usage, args);
 
 	// print it out in JSON form
@@ -31,7 +31,7 @@ int main(int argc, const char** argv)
 		} else {
 			std::cout << "," << std::endl;
 		}
-		
+
 		std::cout << '"' << arg.first << '"' << ": " << arg.second;
 	}
 	std::cout << " }" << std::endl;
