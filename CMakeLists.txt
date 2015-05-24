@@ -36,8 +36,16 @@ endif()
 # example
 
 if (WITH_TESTS)
-	add_executable(docopt_testcase run_testcase.cpp)
-	target_link_libraries(docopt_testcase docopt)
+	set(TESTPROG "${CMAKE_CURRENT_BINARY_DIR}/run_testcase")
+	set(TESTCASES "${PROJECT_SOURCE_DIR}/testcases.docopt")
+	add_executable(run_testcase run_testcase.cpp)
+	target_link_libraries(run_testcase docopt)
+	configure_file(
+		"${PROJECT_SOURCE_DIR}/run_tests.py"
+		"${CMAKE_CURRENT_BINARY_DIR}/run_tests"
+		ESCAPE_QUOTES
+	)
+	add_test("Testcases docopt" ${TESTPROG})
 endif()
 
 ########################################################################
