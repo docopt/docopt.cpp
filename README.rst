@@ -1,7 +1,7 @@
 ``docopt.cpp``: A C++11 Port
 ============================
-doctopt creates *beautiful* command-line interfaces
----------------------------------------------------
+docopt creates *beautiful* command-line interfaces
+--------------------------------------------------
 
 Isn't it awesome how ``getopt`` (and ``boost::program_options`` for you fancy
 folk!) generate help messages based on your code?! These timeless functions
