@@ -1,8 +1,10 @@
+#!/usr/bin/env python2
+
 import re
 import json
 import subprocess
 
-executable = "./run_testcase"
+executable = "${TESTPROG}"
 
 def parse_test(raw):
 	raw = re.compile('#.*$', re.M).sub('', raw).strip()
@@ -24,7 +26,7 @@ def parse_test(raw):
 failures = 0
 passes = 0
 
-tests = open('testcases.docopt','r').read()
+tests = open('${TESTCASES}','r').read()
 for _, doc, cases in parse_test(tests):
 	if not cases: continue
 	
