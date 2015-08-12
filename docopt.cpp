@@ -59,28 +59,28 @@ std::ostream& docopt::operator<<(std::ostream& os, value const& val)
 {
 	if (val.isBool()) {
 		bool b = val.asBool();
-		std::cout << (b ? "true" : "false");
+		os << (b ? "true" : "false");
 	} else if (val.isLong()) {
 		long v = val.asLong();
-		std::cout << v;
+		os << v;
 	} else if (val.isString()) {
 		std::string const& str = val.asString();
-		std::cout << '"' << str << '"';
+		os << '"' << str << '"';
 	} else if (val.isStringList()) {
 		auto const& list = val.asStringList();
-		std::cout << "[";
+		os << "[";
 		bool first = true;
 		for(auto const& el : list) {
 			if (first) {
 				first = false;
 			} else {
-				std::cout << ", ";
+				os << ", ";
 			}
-			std::cout << '"' << el << '"';
+			os << '"' << el << '"';
 		}
-		std::cout << "]";
+		os << "]";
 	} else {
-		std::cout << "null";
+		os << "null";
 	}
 	return os;
 }
