@@ -468,7 +468,7 @@ public:
 			"("
 			"\\S*<.*?>"  // strings, but make sure to keep "< >" strings together
 			"|"
-			"\\S+"     // string without <>
+			"[^<>\\s]+"     // string without <>
 			")" };
 
 		// We do two stages of regex matching. The '[]()' and '...' are strong delimeters
