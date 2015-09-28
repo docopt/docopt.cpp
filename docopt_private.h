@@ -96,7 +96,7 @@ namespace docopt {
 		
 		virtual bool match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const override;
 		
-		virtual bool hasValue() const { return static_cast<bool>(fValue); }
+		virtual bool hasValue() const override { return static_cast<bool>(fValue); }
 		
 		value const& getValue() const { return fValue; }
 		void setValue(value&& v) { fValue = std::move(v); }
