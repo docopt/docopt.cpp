@@ -521,31 +521,23 @@ static PatternList parse_argv(Tokens tokens, std::vector<Option>& options, bool 
 	return ret;
 }
 
-static std::vector<Option> parse_defaults(std::string const& doc) {
-	// This pattern is a bit more complex than the python docopt one due to lack of
-	// re.split. Effectively, it grabs any line with leading whitespace and then a
-	// hyphen; it stops grabbing when it hits another line that also looks like that.
-	static std::regex const pattern {
+std::vector<Option> parse_defaults(std::string const& doc) {
+	// This pattern is a delimiter by which we split the options.
+	// The delimiter is a new line followed by a whitespace(s) followed by one or two hyphens.
+	static std::regex const re_delimiter{
 		"(?:^|\\n)[ \\t]*"  // a new line with leading whitespace
-		"(-(.|\\n)*?)"      // a hyphen, and then grab everything it can...
-		"(?=\\n[ \\t]*-|$)" //  .. until it hits another new line with space and a hyphen
+		"(?=-{1,2})"        // [split happens here] (positive lookahead) ... and followed by one or two hyphes
 	};
 
 	std::vector<Option> defaults;
+	for (auto s : parse_section("options:", doc)) {
+		s.erase(s.begin(), s.begin() + s.find(':') + 1); // get rid of "options:"
 
-	for(auto s : parse_section("options:", doc)) {
-		s.erase(s.begin(), s.begin()+static_cast<std::ptrdiff_t>(s.find(':'))+1); // get rid of "options:"
-
-		std::for_each(std::sregex_iterator{ s.begin(), s.end(), pattern },
-			      std::sregex_iterator{},
-			      [&](std::smatch const& m)
-		{
-			std::string opt = m[1].str();
-
+		for (const auto& opt : regex_split(s, re_delimiter)) {
 			if (starts_with(opt, "-")) {
 				defaults.emplace_back(Option::parse(opt));
 			}
-		});
+		}
 	}
 
 	return defaults;
