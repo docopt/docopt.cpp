@@ -955,3 +955,21 @@ other options:
 """
 $ prog --baz --egg
 {"--foo": false, "--baz": true, "--bar": false, "--egg": true, "--spam": false}
+
+#
+# Tests new lines in options
+#
+r"""Usage:
+    prog [--foo <foo_>] [--baz <baz_>]
+
+Options:
+  --foo <foo_>
+                          Foo [default: 42]
+  --baz <baz_>
+                          Baz [default: 1]
+"""
+$ prog
+{"--baz": "1", "--foo": "42"}
+
+$ prog --foo 82
+{"--baz": "1", "--foo": "82"}
