@@ -173,7 +173,7 @@ Option Option::parse(std::string const& option_description)
 		options_end = option_description.begin() + double_space;
 	}
 	
-	static const std::regex pattern {"(--|-)?(.*?)([,= ]|$)"};
+	static const std::regex pattern {"(--|-)?(.*?)([,= \\n]|$)"};
 	for(std::sregex_iterator i {option_description.begin(), options_end, pattern, std::regex_constants::match_not_null},
 	       e{};
 	    i != e;
