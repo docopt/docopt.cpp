@@ -1,5 +1,7 @@
 language: cpp
 
+sudo: false   # Use the new container infrastructure
+
 compiler:
   - clang
   - gcc
