@@ -535,7 +535,7 @@ private:
 template <typename T>
 std::vector<T*> flat_filter(Pattern& pattern) {
 	std::vector<Pattern*> flattened = pattern.flat([](Pattern const* p) -> bool {
-		return dynamic_cast<T const*>(p);
+		return dynamic_cast<T const*>(p) != nullptr;
 	});
 	
 	// now, we're guaranteed to have T*'s, so just use static_cast
