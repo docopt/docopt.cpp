@@ -1,0 +1,12 @@
+language: cpp
+
+compiler:
+  - clang
+  - gcc
+
+before_script:
+  - cmake -DWITH_TESTS=1 -DWITH_EXAMPLE=1 .
+
+script: 
+  - cmake --build .
+  - python run_tests
