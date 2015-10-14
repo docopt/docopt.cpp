@@ -6,19 +6,48 @@ compiler:
   - clang
   - gcc
 
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - gcc-5
-    - clang-3.5
-    - clang-3.6
-    - clang-3.7
-    - clang-3.8
+matrix:
+  include:
+    - os: linux
+      env: COMPILER=clang++-3.5
+      addons:
+        apt:
+          packages: ["clang-3.5"]
+
+    - os: linux
+      env: COMPILER=clang++-3.6
+      addons:
+        apt:
+          packages: ["clang-3.6"]
+
+    - os: linux
+      env: COMPILER=clang++-3.7
+      addons:
+        apt:
+          packages: ["clang-3.7"]
+
+    - os: linux
+      env: COMPILER=clang++-3.8
+      addons:
+        apt:
+          packages: ["clang-3.8"]
+
+    - os: linux
+      env: COMPILER=g++-5
+      addons:
+        apt:
+          packages: ["gcc-5"]
+
+    - os: osx
+      env: COMPILER=clang++
+      osx_image: xcode6.4
+
+    - os: osx
+      env: COMPILER=clang++
+      osx_image: xcode7
 
 before_script:
-  - cmake -DWITH_TESTS=1 -DWITH_EXAMPLE=1 .
+  - cmake -DCMAKE_CXX_COMPILER=${COMPILER} -DWITH_TESTS=1 -DWITH_EXAMPLE=1 .
 
 script: 
   - cmake --build .
