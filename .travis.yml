@@ -1,53 +1,54 @@
 language: cpp
-
 sudo: false   # Use the new container infrastructure
-
-compiler:
-  - clang
-  - gcc
 
 matrix:
   include:
     - os: linux
-      env: COMPILER=clang++-3.5
+      env: 
+        - COMPILER=clang++-3.6 STDLIB=libc++
       addons:
         apt:
-          packages: ["clang-3.5"]
-
-    - os: linux
-      env: COMPILER=clang++-3.6
-      addons:
-        apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6']
           packages: ["clang-3.6"]
 
     - os: linux
-      env: COMPILER=clang++-3.7
+      env: 
+        - COMPILER=clang++-3.7 STDLIB=libc++
       addons:
         apt:
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
           packages: ["clang-3.7"]
 
-    - os: linux
-      env: COMPILER=clang++-3.8
-      addons:
-        apt:
-          packages: ["clang-3.8"]
-
-    - os: linux
-      env: COMPILER=g++-5
-      addons:
-        apt:
-          packages: ["gcc-5"]
-
     - os: osx
-      env: COMPILER=clang++
       osx_image: xcode6.4
+      env: 
+        - COMPILER=clang++ V='Apple LLVM 6.4'
+        - COMPILER=clang++ V='Apple LLVM 6.4' WITH_CPP14=true
 
     - os: osx
-      env: COMPILER=clang++
       osx_image: xcode7
+      env: 
+        - COMPILER=clang++ V='Apple LLVM 7.0'
+        - COMPILER=clang++ V='Apple LLVM 7.0' WITH_CPP14=true
+
+before_install:
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
+      brew install cmake
+    fi
+
+  - CMAKE_CXX_FLAGS+=" -Wall"
+
+  - if [[ "${WITH_CPP14}" == "true" ]]; then CMAKE_OPTIONS+=" -DWITH_CPP14=1"; fi
+  - if [[ "${STDLIB}" == "libc++" ]]; then CMAKE_CXX_FLAGS+=" -stdlib=libc++"; fi
+
+  - sh ${COMPILER} --version || true
 
 before_script:
-  - cmake -DCMAKE_CXX_COMPILER=${COMPILER} -DWITH_TESTS=1 -DWITH_EXAMPLE=1 .
+  - rm -rf build/
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} -DWITH_TESTS=1 -DWITH_EXAMPLE=1 ${CMAKE_OPTIONS} ..
 
 script: 
   - cmake --build .

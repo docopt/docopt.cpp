@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.6.4)
 option(WITH_TESTS           "Build tests."       OFF)
 option(WITH_EXAMPLE         "Build example."     OFF)
 option(WITH_STATIC          "Build static libs." ON)
+option(WITH_CPP11           "Build with C++11."  ON)
+option(WITH_CPP14           "Build with C++14."  OFF)
 
 project(docopt.cpp)
 include_directories("${PROJECT_SOURCE_DIR}")
@@ -22,7 +24,11 @@ if(WITH_STATIC)
 endif()
 add_library(docopt SHARED ${DOCOPT_SRC})
 
-add_definitions("-std=c++11")
+if(WITH_CPP14)
+    add_definitions("-std=c++14")
+elseif(WITH_CPP11)
+    add_definitions("-std=c++11")
+endif()
 
 ########################################################################
 # tests
