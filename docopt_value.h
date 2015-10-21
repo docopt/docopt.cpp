@@ -13,6 +13,7 @@
 #include <vector>
 #include <functional> // std::hash
 #include <iosfwd>
+#include <cstdio> // sscanf
 
 namespace docopt {
 
@@ -257,6 +258,16 @@ namespace docopt {
 	inline
 	long value::asLong() const
 	{
+		// Attempt to convert a string to a long
+		if (kind == Kind::String) {
+			// Doesn't guard against trailing characters,
+			// but doing so (if desired) would be trivial.
+			long ret;
+			if (sscanf(variant.strValue.c_str(), "%ld", &ret) == 1) {
+				return ret;
+			}
+			// else fall through
+		}
 		throwIfNotKind(Kind::Long);
 		return variant.longValue;
 	}
