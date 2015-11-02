@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 Jared Grubb. All rights reserved.
 //
 
-#ifndef __docopt__docopt__
-#define __docopt__docopt__
+#ifndef docopt__docopt_h_
+#define docopt__docopt_h_
 
 #include "docopt_value.h"
 
@@ -62,4 +62,4 @@ namespace docopt {
 					    bool options_first = false) noexcept;
 }
 
-#endif /* defined(__docopt__docopt__) */
+#endif /* defined(docopt__docopt_h_) */

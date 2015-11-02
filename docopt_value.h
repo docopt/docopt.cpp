@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 Jared Grubb. All rights reserved.
 //
 
-#ifndef __docopt__value__
-#define __docopt__value__
+#ifndef docopt__value_h_
+#define docopt__value_h_
 
 #include <string>
 #include <vector>
@@ -307,4 +307,4 @@ namespace docopt {
 	}
 }
 
-#endif /* defined(__docopt__value__) */
+#endif /* defined(docopt__value_h_) */
