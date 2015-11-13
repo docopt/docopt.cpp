@@ -24,10 +24,12 @@ if(WITH_STATIC)
 endif()
 add_library(docopt SHARED ${DOCOPT_SRC})
 
-if(WITH_CPP14)
-    add_definitions("-std=c++14")
-elseif(WITH_CPP11)
-    add_definitions("-std=c++11")
+if (NOT MSVC)
+    if(WITH_CPP14)
+        add_definitions("-std=c++14")
+    elseif(WITH_CPP11)
+        add_definitions("-std=c++11")
+    endif()
 endif()
 
 ########################################################################
