@@ -1,36 +1,43 @@
-cmake_minimum_required(VERSION 2.6.4)
+cmake_minimum_required(VERSION 3.1)
 
 option(WITH_TESTS           "Build tests."       OFF)
 option(WITH_EXAMPLE         "Build example."     OFF)
 option(WITH_STATIC          "Build static libs." ON)
-option(WITH_CPP11           "Build with C++11."  ON)
-option(WITH_CPP14           "Build with C++14."  OFF)
 
 project(docopt.cpp)
 include_directories("${PROJECT_SOURCE_DIR}")
 
 ########################################################################
+# Compiler properties
+
+# C++ standard
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+if(NOT CMAKE_CXX_STANDARD)
+	set(CMAKE_CXX_STANDARD 11)
+endif()
+
+# Suppression of "unknown pragma" warning on GCC
+if(CMAKE_COMPILER_IS_GNUCXX)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")	# Code uses #pragma mark
+endif()
+
+########################################################################
 # docopt
 
 set(DOCOPT_SRC
-	docopt.cpp
-	docopt.h
-	docopt_private.h
-	docopt_util.h
-	docopt_value.h
-)
+		docopt.cpp
+		docopt.h
+		docopt_private.h
+		docopt_util.h
+		docopt_value.h
+		)
 if(WITH_STATIC)
 	add_library(docopt_s STATIC ${DOCOPT_SRC})
+	target_include_directories(docopt_s PUBLIC "${PROJECT_SOURCE_DIR}")
 endif()
 add_library(docopt SHARED ${DOCOPT_SRC})
-
-if (NOT MSVC)
-    if(WITH_CPP14)
-        add_definitions("-std=c++14")
-    elseif(WITH_CPP11)
-        add_definitions("-std=c++11")
-    endif()
-endif()
+target_include_directories(docopt PUBLIC "${PROJECT_SOURCE_DIR}")
 
 ########################################################################
 # tests
@@ -49,9 +56,9 @@ if (WITH_TESTS)
 	add_executable(run_testcase run_testcase.cpp)
 	target_link_libraries(run_testcase docopt)
 	configure_file(
-		"${PROJECT_SOURCE_DIR}/run_tests.py"
-		"${CMAKE_CURRENT_BINARY_DIR}/run_tests"
-		ESCAPE_QUOTES
+			"${PROJECT_SOURCE_DIR}/run_tests.py"
+			"${CMAKE_CURRENT_BINARY_DIR}/run_tests"
+			ESCAPE_QUOTES
 	)
 	add_test("Testcases docopt" ${TESTPROG})
 endif()
@@ -60,19 +67,19 @@ endif()
 # installation
 
 INSTALL(TARGETS
-	docopt
-	DESTINATION lib)
+		docopt
+		DESTINATION lib)
 if(WITH_STATIC)
 	INSTALL(TARGETS
-		docopt_s
-		DESTINATION lib)
+			docopt_s
+			DESTINATION lib)
 endif()
 INSTALL(FILES
-	docopt.h
-	docopt_private.h
-	docopt_util.h
-	docopt_value.h
-	DESTINATION include/docopt)
+		docopt.h
+		docopt_private.h
+		docopt_util.h
+		docopt_value.h
+		DESTINATION include/docopt)
 SET(CPACK_PACKAGE_NAME "docopt")
 SET(CPACK_DEBIAN_PACKAGE_DEPENDS "")
 SET(CPACK_RPM_PACKAGE_REQUIRES "")
