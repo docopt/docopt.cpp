@@ -73,6 +73,8 @@ namespace docopt {
 		virtual bool hasValue() const { return false; }
 		
 		virtual size_t hash() const = 0;
+
+		virtual ~Pattern() = default;
 	};
 	
 	class LeafPattern
