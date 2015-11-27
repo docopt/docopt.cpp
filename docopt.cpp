@@ -119,7 +119,7 @@ bool LeafPattern::match(PatternList& left, std::vector<std::shared_ptr<LeafPatte
 		return false;
 	}
 	
-	left.erase(left.begin()+static_cast<decltype(left.begin())::difference_type>(match.first));
+	left.erase(left.begin()+static_cast<ssize_t>(match.first));
 	
 	auto same_name = std::find_if(collected.begin(), collected.end(), [&](std::shared_ptr<LeafPattern> const& p) {
 		return p->name()==name();
@@ -170,7 +170,7 @@ Option Option::parse(std::string const& option_description)
 	auto double_space = option_description.find("  ");
 	auto options_end = option_description.end();
 	if (double_space != std::string::npos) {
-		options_end = option_description.begin() + static_cast<decltype(option_description.begin())::difference_type>(double_space);
+		options_end = option_description.begin() + static_cast<ssize_t>(double_space);
 	}
 	
 	static const std::regex pattern {"(--|-)?(.*?)([,= ]|$)"};
@@ -512,7 +512,7 @@ public:
 	std::string the_rest() const {
 		if (!*this)
 			return {};
-		return join(fTokens.begin()+static_cast<decltype(fTokens.begin())::difference_type>(fIndex),
+		return join(fTokens.begin()+static_cast<ssize_t>(fIndex),
 			    fTokens.end(),
 			    " ");
 	}
@@ -920,7 +920,7 @@ static std::vector<Option> parse_defaults(std::string const& doc) {
 	std::vector<Option> defaults;
 	
 	for(auto s : parse_section("options:", doc)) {
-		s.erase(s.begin(), s.begin()+static_cast<decltype(s.begin())::difference_type>(s.find(':'))+1); // get rid of "options:"
+		s.erase(s.begin(), s.begin()+static_cast<ssize_t>(s.find(':'))+1); // get rid of "options:"
 		
 		std::for_each(std::sregex_iterator{ s.begin(), s.end(), pattern },
 			      std::sregex_iterator{},
