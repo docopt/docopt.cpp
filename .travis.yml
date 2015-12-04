@@ -4,20 +4,28 @@ sudo: false   # Use the new container infrastructure
 matrix:
   include:
     - os: linux
+      env:
+        - COMPILER=g++-5 STDLIB=libc++
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'george-edison55-precise-backports']
+          packages: ["g++-5", "cmake-data", "cmake"]
+
+    - os: linux
       env: 
         - COMPILER=clang++-3.6 STDLIB=libc++
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6']
-          packages: ["clang-3.6"]
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6', 'george-edison55-precise-backports']
+          packages: ["clang-3.6", "cmake-data", "cmake"]
 
     - os: linux
       env: 
         - COMPILER=clang++-3.7 STDLIB=libc++
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7']
-          packages: ["clang-3.7"]
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7', 'george-edison55-precise-backports']
+          packages: ["clang-3.7", "cmake-data", "cmake"]
 
     - os: osx
       osx_image: xcode6.4
@@ -39,7 +47,7 @@ before_install:
 
   - CMAKE_CXX_FLAGS+=" -Wall"
 
-  - if [[ "${WITH_CPP14}" == "true" ]]; then CMAKE_OPTIONS+=" -DWITH_CPP14=1"; fi
+  - if [[ "${WITH_CPP14}" == "true" ]]; then CMAKE_OPTIONS+=" -DCMAKE_CXX_STANDARD=14"; fi
   - if [[ "${STDLIB}" == "libc++" ]]; then CMAKE_CXX_FLAGS+=" -stdlib=libc++"; fi
 
   - sh ${COMPILER} --version || true

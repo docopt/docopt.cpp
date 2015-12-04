@@ -257,6 +257,17 @@ namespace docopt {
 	inline
 	long value::asLong() const
 	{
+		// Attempt to convert a string to a long
+		if (kind == Kind::String) {
+			const std::string& str = variant.strValue;
+			std::size_t pos;
+			const long ret = stol(str, &pos); // Throws if it can't convert
+			if (pos != str.length()) {
+				// The string ended in non-digits.
+				throw std::runtime_error( str + " contains non-numeric characters.");
+			}
+			return ret;
+		}
 		throwIfNotKind(Kind::Long);
 		return variant.longValue;
 	}
