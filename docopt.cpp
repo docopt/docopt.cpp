@@ -118,7 +118,6 @@ bool LeafPattern::match(PatternList& left, std::vector<std::shared_ptr<LeafPatte
 	if (!match.second) {
 		return false;
 	}
-	
 
 	left.erase(left.begin()+static_cast<ssize_t>(match.first));
 
