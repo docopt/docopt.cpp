@@ -20,6 +20,7 @@
 #include <regex>
 #include <iostream>
 #include <cassert>
+#include <cstddef>
 
 using namespace docopt;
 
@@ -119,7 +120,7 @@ bool LeafPattern::match(PatternList& left, std::vector<std::shared_ptr<LeafPatte
 		return false;
 	}
 
-	left.erase(left.begin()+static_cast<ptrdiff_t>(match.first));
+	left.erase(left.begin()+static_cast<std::ptrdiff_t>(match.first));
 
 	auto same_name = std::find_if(collected.begin(), collected.end(), [&](std::shared_ptr<LeafPattern> const& p) {
 		return p->name()==name();
@@ -170,7 +171,7 @@ Option Option::parse(std::string const& option_description)
 	auto double_space = option_description.find("  ");
 	auto options_end = option_description.end();
 	if (double_space != std::string::npos) {
-		options_end = option_description.begin() + static_cast<ptrdiff_t>(double_space);
+		options_end = option_description.begin() + static_cast<std::ptrdiff_t>(double_space);
 	}
 
 	static const std::regex pattern {"(-{1,2})?(.*?)([,= ]|$)"};
@@ -512,7 +513,7 @@ public:
 	std::string the_rest() const {
 		if (!*this)
 			return {};
-		return join(fTokens.begin()+static_cast<ptrdiff_t>(fIndex),
+		return join(fTokens.begin()+static_cast<std::ptrdiff_t>(fIndex),
 			    fTokens.end(),
 			    " ");
 	}
@@ -920,7 +921,7 @@ static std::vector<Option> parse_defaults(std::string const& doc) {
 	std::vector<Option> defaults;
 
 	for(auto s : parse_section("options:", doc)) {
-		s.erase(s.begin(), s.begin()+static_cast<ptrdiff_t>(s.find(':'))+1); // get rid of "options:"
+		s.erase(s.begin(), s.begin()+static_cast<std::ptrdiff_t>(s.find(':'))+1); // get rid of "options:"
 
 		std::for_each(std::sregex_iterator{ s.begin(), s.end(), pattern },
 			      std::sregex_iterator{},
