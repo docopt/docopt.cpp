@@ -20,6 +20,7 @@
 #include <regex>
 #include <iostream>
 #include <cassert>
+#include <cstddef>
 
 using namespace docopt;
 
@@ -119,7 +120,7 @@ bool LeafPattern::match(PatternList& left, std::vector<std::shared_ptr<LeafPatte
 		return false;
 	}
 
-	left.erase(left.begin()+match.first);
+	left.erase(left.begin()+static_cast<std::ptrdiff_t>(match.first));
 
 	auto same_name = std::find_if(collected.begin(), collected.end(), [&](std::shared_ptr<LeafPattern> const& p) {
 		return p->name()==name();
@@ -170,7 +171,7 @@ Option Option::parse(std::string const& option_description)
 	auto double_space = option_description.find("  ");
 	auto options_end = option_description.end();
 	if (double_space != std::string::npos) {
-		options_end = option_description.begin() + double_space;
+		options_end = option_description.begin() + static_cast<std::ptrdiff_t>(double_space);
 	}
 
 	static const std::regex pattern {"(-{1,2})?(.*?)([,= ]|$)"};
@@ -340,7 +341,7 @@ std::pair<size_t, std::shared_ptr<LeafPattern>> Option::single_match(PatternList
 #pragma mark -
 #pragma mark Parsing stuff
 
-std::vector<PatternList> transform(PatternList pattern);
+static std::vector<PatternList> transform(PatternList pattern);
 
 void BranchPattern::fix_repeating_arguments()
 {
@@ -385,7 +386,7 @@ void BranchPattern::fix_repeating_arguments()
 	}
 }
 
-std::vector<PatternList> transform(PatternList pattern)
+static std::vector<PatternList> transform(PatternList pattern)
 {
 	std::vector<PatternList> result;
 
@@ -512,7 +513,7 @@ public:
 	std::string the_rest() const {
 		if (!*this)
 			return {};
-		return join(fTokens.begin()+fIndex,
+		return join(fTokens.begin()+static_cast<std::ptrdiff_t>(fIndex),
 			    fTokens.end(),
 			    " ");
 	}
@@ -546,7 +547,7 @@ std::vector<T*> flat_filter(Pattern& pattern) {
 	return ret;
 }
 
-std::vector<std::string> parse_section(std::string const& name, std::string const& source) {
+static std::vector<std::string> parse_section(std::string const& name, std::string const& source) {
 	// ECMAScript regex only has "?=" for a non-matching lookahead. In order to make sure we always have
 	// a newline to anchor our matching, we have to avoid matching the final newline of each grouping.
 	// Therefore, our regex is adjusted from the docopt Python one to use ?= to match the newlines before
@@ -571,7 +572,7 @@ std::vector<std::string> parse_section(std::string const& name, std::string cons
 	return ret;
 }
 
-bool is_argument_spec(std::string const& token) {
+static bool is_argument_spec(std::string const& token) {
 	if (token.empty())
 		return false;
 
@@ -593,7 +594,7 @@ std::vector<std::string> longOptions(I iter, I end) {
 	return ret;
 }
 
-PatternList parse_long(Tokens& tokens, std::vector<Option>& options)
+static PatternList parse_long(Tokens& tokens, std::vector<Option>& options)
 {
 	// long ::= '--' chars [ ( ' ' | '=' ) chars ] ;
 	std::string longOpt, equal;
@@ -665,7 +666,7 @@ PatternList parse_long(Tokens& tokens, std::vector<Option>& options)
 	return ret;
 }
 
-PatternList parse_short(Tokens& tokens, std::vector<Option>& options)
+static PatternList parse_short(Tokens& tokens, std::vector<Option>& options)
 {
 	// shorts ::= '-' ( chars )* [ [ ' ' ] chars ] ;
 
@@ -706,8 +707,8 @@ PatternList parse_short(Tokens& tokens, std::vector<Option>& options)
 			if (o->argCount()) {
 				if (i == token.end()) {
 					// consume the next token
-					auto const& token = tokens.current();
-					if (token.empty() || token=="--") {
+					auto const& ttoken = tokens.current();
+					if (ttoken.empty() || ttoken=="--") {
 						std::string error = shortOpt + " requires an argument";
 						throw Tokens::OptionError(std::move(error));
 					}
@@ -729,9 +730,9 @@ PatternList parse_short(Tokens& tokens, std::vector<Option>& options)
 	return ret;
 }
 
-PatternList parse_expr(Tokens& tokens, std::vector<Option>& options);
+static PatternList parse_expr(Tokens& tokens, std::vector<Option>& options);
 
-PatternList parse_atom(Tokens& tokens, std::vector<Option>& options)
+static PatternList parse_atom(Tokens& tokens, std::vector<Option>& options)
 {
 	// atom ::= '(' expr ')' | '[' expr ']' | 'options'
 	//             | long | shorts | argument | command ;
@@ -778,7 +779,7 @@ PatternList parse_atom(Tokens& tokens, std::vector<Option>& options)
 	return ret;
 }
 
-PatternList parse_seq(Tokens& tokens, std::vector<Option>& options)
+static PatternList parse_seq(Tokens& tokens, std::vector<Option>& options)
 {
 	// seq ::= ( atom [ '...' ] )* ;"""
 
@@ -802,7 +803,7 @@ PatternList parse_seq(Tokens& tokens, std::vector<Option>& options)
 	return ret;
 }
 
-std::shared_ptr<Pattern> maybe_collapse_to_required(PatternList&& seq)
+static std::shared_ptr<Pattern> maybe_collapse_to_required(PatternList&& seq)
 {
 	if (seq.size()==1) {
 		return std::move(seq[0]);
@@ -810,7 +811,7 @@ std::shared_ptr<Pattern> maybe_collapse_to_required(PatternList&& seq)
 	return std::make_shared<Required>(std::move(seq));
 }
 
-std::shared_ptr<Pattern> maybe_collapse_to_either(PatternList&& seq)
+static std::shared_ptr<Pattern> maybe_collapse_to_either(PatternList&& seq)
 {
 	if (seq.size()==1) {
 		return std::move(seq[0]);
@@ -839,7 +840,7 @@ PatternList parse_expr(Tokens& tokens, std::vector<Option>& options)
 	return { maybe_collapse_to_either(std::move(ret)) };
 }
 
-Required parse_pattern(std::string const& source, std::vector<Option>& options)
+static Required parse_pattern(std::string const& source, std::vector<Option>& options)
 {
 	auto tokens = Tokens::from_pattern(source);
 	auto result = parse_expr(tokens, options);
@@ -852,17 +853,17 @@ Required parse_pattern(std::string const& source, std::vector<Option>& options)
 }
 
 
-std::string formal_usage(std::string const& section) {
+static std::string formal_usage(std::string const& section) {
 	std::string ret = "(";
 
 	auto i = section.find(':')+1;  // skip past "usage:"
 	auto parts = split(section, i);
-	for(size_t i = 1; i < parts.size(); ++i) {
-		if (parts[i] == parts[0]) {
+	for(size_t ii = 1; ii < parts.size(); ++ii) {
+		if (parts[ii] == parts[0]) {
 			ret += " ) | (";
 		} else {
 			ret.push_back(' ');
-			ret += parts[i];
+			ret += parts[ii];
 		}
 	}
 
@@ -870,7 +871,7 @@ std::string formal_usage(std::string const& section) {
 	return ret;
 }
 
-PatternList parse_argv(Tokens tokens, std::vector<Option>& options, bool options_first)
+static PatternList parse_argv(Tokens tokens, std::vector<Option>& options, bool options_first)
 {
 	// Parse command-line argument vector.
 	//
@@ -907,7 +908,7 @@ PatternList parse_argv(Tokens tokens, std::vector<Option>& options, bool options
 	return ret;
 }
 
-std::vector<Option> parse_defaults(std::string const& doc) {
+static std::vector<Option> parse_defaults(std::string const& doc) {
 	// This pattern is a bit more complex than the python docopt one due to lack of
 	// re.split. Effectively, it grabs any line with leading whitespace and then a
 	// hyphen; it stops grabbing when it hits another line that also looks like that.
@@ -920,7 +921,7 @@ std::vector<Option> parse_defaults(std::string const& doc) {
 	std::vector<Option> defaults;
 
 	for(auto s : parse_section("options:", doc)) {
-		s.erase(s.begin(), s.begin()+s.find(':')+1); // get rid of "options:"
+		s.erase(s.begin(), s.begin()+static_cast<std::ptrdiff_t>(s.find(':'))+1); // get rid of "options:"
 
 		std::for_each(std::sregex_iterator{ s.begin(), s.end(), pattern },
 			      std::sregex_iterator{},
@@ -937,7 +938,7 @@ std::vector<Option> parse_defaults(std::string const& doc) {
 	return defaults;
 }
 
-bool isOptionSet(PatternList const& options, std::string const& opt1, std::string const& opt2 = "") {
+static bool isOptionSet(PatternList const& options, std::string const& opt1, std::string const& opt2 = "") {
 	return std::any_of(options.begin(), options.end(), [&](std::shared_ptr<Pattern const> const& opt) -> bool {
 		auto const& name = opt->name();
 		if (name==opt1 || (!opt2.empty() && name==opt2)) {
@@ -947,7 +948,7 @@ bool isOptionSet(PatternList const& options, std::string const& opt1, std::strin
 	});
 }
 
-void extras(bool help, bool version, PatternList const& options) {
+static void extras(bool help, bool version, PatternList const& options) {
 	if (help && isOptionSet(options, "-h", "--help")) {
 		throw DocoptExitHelp();
 	}
@@ -958,7 +959,7 @@ void extras(bool help, bool version, PatternList const& options) {
 }
 
 // Parse the doc string and generate the Pattern tree
-std::pair<Required, std::vector<Option>> create_pattern_tree(std::string const& doc)
+static std::pair<Required, std::vector<Option>> create_pattern_tree(std::string const& doc)
 {
 	auto usage_sections = parse_section("usage:", doc);
 	if (usage_sections.empty()) {
