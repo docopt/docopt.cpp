@@ -1,56 +1,69 @@
 cmake_minimum_required(VERSION 3.1)
+project(docopt.cpp VERSION 0.6.1)
 
-option(WITH_TESTS           "Build tests."       OFF)
-option(WITH_EXAMPLE         "Build example."     OFF)
-option(WITH_STATIC          "Build static libs." ON)
+include(GNUInstallDirs)
 
-project(docopt.cpp)
-include_directories("${PROJECT_SOURCE_DIR}")
+#============================================================================
+# Settable options
+#============================================================================
+option(WITH_TESTS "Build tests." OFF)
+option(WITH_EXAMPLE "Build example." OFF)
 
-########################################################################
-# Compiler properties
-
+#============================================================================
+# Internal compiler options
+#============================================================================
 # C++ standard
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-if(NOT CMAKE_CXX_STANDARD)
+if(NOT CMAKE_CXX_STANDARD OR CMAKE_CXX_STANDARD LESS 11)
 	set(CMAKE_CXX_STANDARD 11)
 endif()
 
 # Suppression of "unknown pragma" warning on GCC
 if(CMAKE_COMPILER_IS_GNUCXX)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas")	# Code uses #pragma mark
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas") # Code uses #pragma mark
 endif()
 
-########################################################################
-# docopt
-
-set(DOCOPT_SRC
-		docopt.cpp
+#============================================================================
+# Sources & headers
+#============================================================================
+set(docopt_SOURCES docopt.cpp)
+set(docopt_HEADERS
 		docopt.h
 		docopt_private.h
 		docopt_util.h
 		docopt_value.h
 		)
-if(WITH_STATIC)
-	add_library(docopt_s STATIC ${DOCOPT_SRC})
-	target_include_directories(docopt_s PUBLIC "${PROJECT_SOURCE_DIR}")
+
+#============================================================================
+# Compile targets
+#============================================================================
+add_library(docopt_o OBJECT ${docopt_SOURCES} ${docopt_HEADERS})
+set_target_properties(docopt_o PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+
+add_library(docopt SHARED $<TARGET_OBJECTS:docopt_o>)
+add_library(docopt_s STATIC $<TARGET_OBJECTS:docopt_o>)
+
+target_include_directories(docopt PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}> $<INSTALL_INTERFACE:include/docopt>)
+target_include_directories(docopt_s PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}> $<INSTALL_INTERFACE:include/docopt>)
+
+if(NOT MSVC)
+	set_target_properties(docopt PROPERTIES OUTPUT_NAME docopt)
+	set_target_properties(docopt_s PROPERTIES OUTPUT_NAME docopt)
 endif()
-add_library(docopt SHARED ${DOCOPT_SRC})
-target_include_directories(docopt PUBLIC "${PROJECT_SOURCE_DIR}")
 
-########################################################################
-# tests
-
-if (WITH_EXAMPLE)
+#============================================================================
+# Examples
+#============================================================================
+if(WITH_EXAMPLE)
 	add_executable(docopt_example examples/naval_fate.cpp)
 	target_link_libraries(docopt_example docopt)
 endif()
 
-########################################################################
-# example
-
-if (WITH_TESTS)
+#============================================================================
+# Tests
+#============================================================================
+if(WITH_TESTS)
 	set(TESTPROG "${CMAKE_CURRENT_BINARY_DIR}/run_testcase")
 	set(TESTCASES "${PROJECT_SOURCE_DIR}/testcases.docopt")
 	add_executable(run_testcase run_testcase.cpp)
@@ -63,36 +76,40 @@ if (WITH_TESTS)
 	add_test("Testcases docopt" ${TESTPROG})
 endif()
 
-########################################################################
-# installation
+#============================================================================
+# Install
+#============================================================================
+set(export_name "docopt-targets")
 
-INSTALL(TARGETS
-		docopt
-		DESTINATION lib)
-if(WITH_STATIC)
-	INSTALL(TARGETS
-			docopt_s
-			DESTINATION lib)
-endif()
-INSTALL(FILES
-		docopt.h
-		docopt_private.h
-		docopt_util.h
-		docopt_value.h
-		DESTINATION include/docopt)
-SET(CPACK_PACKAGE_NAME "docopt")
-SET(CPACK_DEBIAN_PACKAGE_DEPENDS "")
-SET(CPACK_RPM_PACKAGE_REQUIRES "")
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Beautiful command line interfaces")
-SET(CPACK_PACKAGE_VENDOR "Jared Grubb")
-SET(CPACK_PACKAGE_CONTACT ${CPACK_PACKAGE_VENDOR})
-SET(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/README.rst")
-SET(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE-MIT")
-SET(CPACK_PACKAGE_VERSION_MAJOR 0)
-SET(CPACK_PACKAGE_VERSION_MINOR 6)
-SET(CPACK_PACKAGE_VERSION_PATCH 1)
-SET(CPACK_DEBIAN_PACKAGE_SECTION "Development")
-SET(CPACK_RPM_PACKAGE_GROUP "Development/Libraries")
-SET(CPACK_RPM_PACKAGE_LICENSE "MIT")
-SET(CPACK_STRIP_FILES TRUE)
-INCLUDE(CPack)
+# Runtime package
+install(TARGETS docopt EXPORT ${export_name} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+# Development package
+install(TARGETS docopt_s EXPORT ${export_name} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(FILES ${docopt_HEADERS} DESTINATION include/docopt)
+
+# CMake Package
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file("${PROJECT_BINARY_DIR}/docopt-config-version.cmake" COMPATIBILITY SameMajorVersion)
+install(FILES docopt-config.cmake ${PROJECT_BINARY_DIR}/docopt-config-version.cmake DESTINATION "lib/cmake/docopt")
+install(EXPORT ${export_name} DESTINATION "lib/cmake/docopt")
+
+#============================================================================
+# CPack
+#============================================================================
+set(CPACK_PACKAGE_NAME "docopt")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "")
+set(CPACK_RPM_PACKAGE_REQUIRES "")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Beautiful command line interfaces")
+set(CPACK_PACKAGE_VENDOR "Jared Grubb")
+set(CPACK_PACKAGE_CONTACT ${CPACK_PACKAGE_VENDOR})
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/README.rst")
+set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE-MIT")
+set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+set(CPACK_DEBIAN_PACKAGE_SECTION "Development")
+set(CPACK_RPM_PACKAGE_GROUP "Development/Libraries")
+set(CPACK_RPM_PACKAGE_LICENSE "MIT")
+set(CPACK_STRIP_FILES TRUE)
+include(CPack)
