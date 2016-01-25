@@ -12,6 +12,8 @@
 #include <vector>
 #include <memory>
 #include <unordered_set>
+#include <regex>
+#include <assert.h>
 
 #include "docopt_value.h"
 
@@ -304,6 +306,294 @@ namespace docopt {
 		
 		bool match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const override;
 	};
+
+	inline std::vector<LeafPattern*> Pattern::leaves()
+	{
+		std::vector<LeafPattern*> ret;
+		collect_leaves(ret);
+		return ret;
+	}
+
+	inline bool LeafPattern::match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const
+	{
+		auto match = single_match(left);
+		if (!match.second) {
+			return false;
+		}
+
+		left.erase(left.begin()+static_cast<std::ptrdiff_t>(match.first));
+
+		auto same_name = std::find_if(collected.begin(), collected.end(), [&](std::shared_ptr<LeafPattern> const& p) {
+			return p->name()==name();
+		});
+		if (getValue().isLong()) {
+			long val = 1;
+			if (same_name == collected.end()) {
+				collected.push_back(match.second);
+				match.second->setValue(value{val});
+			} else if ((**same_name).getValue().isLong()) {
+				val += (**same_name).getValue().asLong();
+				(**same_name).setValue(value{val});
+			} else {
+				(**same_name).setValue(value{val});
+			}
+		} else if (getValue().isStringList()) {
+			std::vector<std::string> val;
+			if (match.second->getValue().isString()) {
+				val.push_back(match.second->getValue().asString());
+			} else if (match.second->getValue().isStringList()) {
+				val = match.second->getValue().asStringList();
+			} else {
+				/// cant be!?
+			}
+
+			if (same_name == collected.end()) {
+				collected.push_back(match.second);
+				match.second->setValue(value{val});
+			} else if ((**same_name).getValue().isStringList()) {
+				std::vector<std::string> const& list = (**same_name).getValue().asStringList();
+				val.insert(val.begin(), list.begin(), list.end());
+				(**same_name).setValue(value{val});
+			} else {
+				(**same_name).setValue(value{val});
+			}
+		} else {
+			collected.push_back(match.second);
+		}
+		return true;
+	}
+
+	inline std::pair<size_t, std::shared_ptr<LeafPattern>> Argument::single_match(PatternList const& left) const
+	{
+#if NO_RAW_FOR_LOOPS
+		auto thematch = find_if(left.begin(), left.end(), [](std::shared_ptr<Pattern> const& a) { return dynamic_cast<Argument const*>(a.get()); });
+		if (thematch == left.end()) {
+			return {};
+		}
+		return { std::distance(left.begin(), thematch), std::make_shared<Argument>(name(), dynamic_cast<Argument const*>(thematch->get())->getValue()) };
+#else
+		std::pair<size_t, std::shared_ptr<LeafPattern>> ret {};
+
+		for(size_t i = 0, size = left.size(); i < size; ++i)
+		{
+			auto arg = dynamic_cast<Argument const*>(left[i].get());
+			if (arg) {
+				ret.first = i;
+				ret.second = std::make_shared<Argument>(name(), arg->getValue());
+				break;
+			}
+		}
+
+		return ret;
+#endif
+	}
+
+	inline std::pair<size_t, std::shared_ptr<LeafPattern>> Command::single_match(PatternList const& left) const
+	{
+#if NO_RAW_FOR_LOOPS
+		auto thematch = find_if(left.begin(), left.end(), [this](std::shared_ptr<Pattern> const& a) {
+			auto arg = dynamic_cast<Argument const*>(a.get());
+			return arg && this->name() == arg->getValue();
+		});
+		if (thematch == left.end()) {
+			return {};
+		}
+		return { std::distance(left.begin(), thematch), std::make_shared<Argument>(name(), value{true}) };
+#else
+		std::pair<size_t, std::shared_ptr<LeafPattern>> ret {};
+
+		for(size_t i = 0, size = left.size(); i < size; ++i)
+		{
+			auto arg = dynamic_cast<Argument const*>(left[i].get());
+			if (arg) {
+				if (name() == arg->getValue()) {
+					ret.first = i;
+					ret.second = std::make_shared<Command>(name(), value{true});
+				}
+				break;
+			}
+		}
+
+		return ret;
+#endif
+	}
+
+	inline Option Option::parse(std::string const& option_description)
+	{
+		std::string shortOption, longOption;
+		int argcount = 0;
+		value val { false };
+
+		auto double_space = option_description.find("  ");
+		auto options_end = option_description.end();
+		if (double_space != std::string::npos) {
+			options_end = option_description.begin() + static_cast<std::ptrdiff_t>(double_space);
+		}
+
+		static const std::regex pattern {"(-{1,2})?(.*?)([,= ]|$)"};
+		for(std::sregex_iterator i {option_description.begin(), options_end, pattern, std::regex_constants::match_not_null},
+			   e{};
+			i != e;
+			++i)
+		{
+			std::smatch const& match = *i;
+			if (match[1].matched) { // [1] is optional.
+				if (match[1].length()==1) {
+						shortOption = "-" + match[2].str();
+				} else {
+						longOption =  "--" + match[2].str();
+				}
+			} else if (match[2].length() > 0) { // [2] always matches.
+				std::string m = match[2];
+				argcount = 1;
+			} else {
+				// delimeter
+			}
+
+			if (match[3].length() == 0) { // [3] always matches.
+				// Hit end of string. For some reason 'match_not_null' will let us match empty
+				// at the end, and then we'll spin in an infinite loop. So, if we hit an empty
+				// match, we know we must be at the end.
+				break;
+			}
+		}
+
+		if (argcount) {
+			std::smatch match;
+			if (std::regex_search(options_end, option_description.end(),
+						  match,
+						  std::regex{"\\[default: (.*)\\]", std::regex::icase}))
+			{
+				val = match[1].str();
+			}
+		}
+
+		return {std::move(shortOption),
+			std::move(longOption),
+			argcount,
+			std::move(val)};
+	}
+
+	inline std::pair<size_t, std::shared_ptr<LeafPattern>> Option::single_match(PatternList const& left) const
+	{
+#if NO_RAW_FOR_LOOPS
+		auto thematch = find_if(left.begin(), left.end(), [this](std::shared_ptr<Pattern> const& a) {
+			auto leaf = std::dynamic_pointer_cast<LeafPattern>(a);
+			return leaf && this->name() == leaf->name();
+		});
+		if (thematch == left.end()) {
+			return {};
+		}
+		return { std::distance(left.begin(), thematch), std::dynamic_pointer_cast<LeafPattern>(*thematch) };
+#else
+		std::pair<size_t, std::shared_ptr<LeafPattern>> ret {};
+
+		for(size_t i = 0, size = left.size(); i < size; ++i)
+		{
+			auto leaf = std::dynamic_pointer_cast<LeafPattern>(left[i]);
+			if (leaf && name() == leaf->name()) {
+				ret.first = i;
+				ret.second = leaf;
+				break;
+			}
+		}
+
+		return ret;
+#endif
+	}
+
+	inline bool Required::match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const {
+		auto l = left;
+		auto c = collected;
+#if NO_RAW_FOR_LOOPS
+		if (std::find_if(fChildren.begin(), fChildren.end(), [&l, &c](std::shared_ptr<Pattern> const&p) { return !p->match(l, c); }) != fChildren.end()) {
+			return false;
+		}
+		left = std::move(l);
+		collected = std::move(c);
+		return true;
+#else
+		for(auto const& pattern : fChildren) {
+			bool ret = pattern->match(l, c);
+			if (!ret) {
+				// leave (left, collected) untouched
+				return false;
+			}
+		}
+
+		left = std::move(l);
+		collected = std::move(c);
+		return true;
+#endif
+	}
+
+	inline bool OneOrMore::match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const
+	{
+		assert(fChildren.size() == 1);
+
+		auto l = left;
+		auto c = collected;
+
+		bool matched = true;
+		size_t times = 0;
+
+		decltype(l) l_;
+		bool firstLoop = true;
+
+		while (matched) {
+			// could it be that something didn't match but changed l or c?
+			matched = fChildren[0]->match(l, c);
+
+			if (matched)
+				++times;
+
+			if (firstLoop) {
+				firstLoop = false;
+			} else if (l == l_) {
+				break;
+			}
+
+			l_ = l;
+		}
+
+		if (times == 0) {
+			return false;
+		}
+
+		left = std::move(l);
+		collected = std::move(c);
+		return true;
+	}
+
+	inline bool Either::match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const
+	{
+		using Outcome = std::pair<PatternList, std::vector<std::shared_ptr<LeafPattern>>>;
+
+		std::vector<Outcome> outcomes;
+
+		for(auto const& pattern : fChildren) {
+			// need a copy so we apply the same one for every iteration
+			auto l = left;
+			auto c = collected;
+			bool matched = pattern->match(l, c);
+			if (matched) {
+				outcomes.emplace_back(std::move(l), std::move(c));
+			}
+		}
+
+		auto min = std::min_element(outcomes.begin(), outcomes.end(), [](Outcome const& o1, Outcome const& o2) {
+			return o1.first.size() < o2.first.size();
+		});
+
+		if (min == outcomes.end()) {
+			// (left, collected) unchanged
+			return false;
+		}
+
+		std::tie(left, collected) = std::move(*min);
+		return true;
+	}
+
 }
 
 #endif
