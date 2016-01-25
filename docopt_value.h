@@ -76,8 +76,27 @@ namespace docopt {
 			std::vector<std::string> strList;
 		};
 		
-		static const char* kindAsString(Kind);
-		void throwIfNotKind(Kind expected) const;
+		static const char* kindAsString(Kind kind) {
+			switch (kind) {
+				case Kind::Empty: return "empty";
+				case Kind::Bool: return "bool";
+				case Kind::Long: return "long";
+				case Kind::String: return "string";
+				case Kind::StringList: return "string-list";
+			}
+			return "unknown";
+		}
+
+		void throwIfNotKind(Kind expected) const {
+			if (kind == expected)
+				return;
+
+			std::string error = "Illegal cast to ";
+			error += kindAsString(expected);
+			error += "; type is actually ";
+			error += kindAsString(kind);
+			throw std::runtime_error(std::move(error));
+		}
 
 	private:
 		Kind kind = Kind::Empty;

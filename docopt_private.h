@@ -12,6 +12,8 @@
 #include <vector>
 #include <memory>
 #include <unordered_set>
+#include <regex>
+#include <assert.h>
 
 #include "docopt_value.h"
 
@@ -304,6 +306,354 @@ namespace docopt {
 		
 		bool match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const override;
 	};
+
+#pragma mark -
+#pragma mark inline implementations
+
+	inline std::vector<LeafPattern*> Pattern::leaves()
+	{
+		std::vector<LeafPattern*> ret;
+		collect_leaves(ret);
+		return ret;
+	}
+
+	static inline std::vector<PatternList> transform(PatternList pattern)
+	{
+		std::vector<PatternList> result;
+
+		std::vector<PatternList> groups;
+		groups.emplace_back(std::move(pattern));
+
+		while(!groups.empty()) {
+			// pop off the first element
+			auto children = std::move(groups[0]);
+			groups.erase(groups.begin());
+
+			// find the first branch node in the list
+			auto child_iter = std::find_if(children.begin(), children.end(), [](std::shared_ptr<Pattern> const& p) {
+				return dynamic_cast<BranchPattern const*>(p.get());
+			});
+
+			// no branch nodes left : expansion is complete for this grouping
+			if (child_iter == children.end()) {
+				result.emplace_back(std::move(children));
+				continue;
+			}
+
+			// pop the child from the list
+			auto child = std::move(*child_iter);
+			children.erase(child_iter);
+
+			// expand the branch in the appropriate way
+			if (Either* either = dynamic_cast<Either*>(child.get())) {
+				// "[e] + children" for each child 'e' in Either
+				for(auto const& eitherChild : either->children()) {
+					PatternList group = { eitherChild };
+					group.insert(group.end(), children.begin(), children.end());
+
+					groups.emplace_back(std::move(group));
+				}
+			} else if (OneOrMore* oneOrMore = dynamic_cast<OneOrMore*>(child.get())) {
+				// child.children * 2 + children
+				auto const& subchildren = oneOrMore->children();
+				PatternList group = subchildren;
+				group.insert(group.end(), subchildren.begin(), subchildren.end());
+				group.insert(group.end(), children.begin(), children.end());
+
+				groups.emplace_back(std::move(group));
+			} else { // Required, Optional, OptionsShortcut
+				BranchPattern* branch = dynamic_cast<BranchPattern*>(child.get());
+
+				// child.children + children
+				PatternList group = branch->children();
+				group.insert(group.end(), children.begin(), children.end());
+
+				groups.emplace_back(std::move(group));
+			}
+		}
+
+		return result;
+	}
+
+	inline void BranchPattern::fix_repeating_arguments()
+	{
+		std::vector<PatternList> either = transform(children());
+		for(auto const& group : either) {
+			// use multiset to help identify duplicate entries
+			std::unordered_multiset<std::shared_ptr<Pattern>, PatternHasher> group_set {group.begin(), group.end()};
+			for(auto const& e : group_set) {
+				if (group_set.count(e) == 1)
+					continue;
+
+				LeafPattern* leaf = dynamic_cast<LeafPattern*>(e.get());
+				if (!leaf) continue;
+
+				bool ensureList = false;
+				bool ensureInt = false;
+
+				if (dynamic_cast<Command*>(leaf)) {
+					ensureInt = true;
+				} else if (dynamic_cast<Argument*>(leaf)) {
+					ensureList = true;
+				} else if (Option* o = dynamic_cast<Option*>(leaf)) {
+					if (o->argCount()) {
+						ensureList = true;
+					} else {
+						ensureInt = true;
+					}
+				}
+
+				if (ensureList) {
+					std::vector<std::string> newValue;
+					if (leaf->getValue().isString()) {
+						newValue = split(leaf->getValue().asString());
+					}
+					if (!leaf->getValue().isStringList()) {
+						leaf->setValue(value{newValue});
+					}
+				} else if (ensureInt) {
+					leaf->setValue(value{0});
+				}
+			}
+		}
+	}
+
+	inline bool LeafPattern::match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const
+	{
+		auto match = single_match(left);
+		if (!match.second) {
+			return false;
+		}
+
+		left.erase(left.begin()+static_cast<std::ptrdiff_t>(match.first));
+
+		auto same_name = std::find_if(collected.begin(), collected.end(), [&](std::shared_ptr<LeafPattern> const& p) {
+			return p->name()==name();
+		});
+		if (getValue().isLong()) {
+			long val = 1;
+			if (same_name == collected.end()) {
+				collected.push_back(match.second);
+				match.second->setValue(value{val});
+			} else if ((**same_name).getValue().isLong()) {
+				val += (**same_name).getValue().asLong();
+				(**same_name).setValue(value{val});
+			} else {
+				(**same_name).setValue(value{val});
+			}
+		} else if (getValue().isStringList()) {
+			std::vector<std::string> val;
+			if (match.second->getValue().isString()) {
+				val.push_back(match.second->getValue().asString());
+			} else if (match.second->getValue().isStringList()) {
+				val = match.second->getValue().asStringList();
+			} else {
+				/// cant be!?
+			}
+
+			if (same_name == collected.end()) {
+				collected.push_back(match.second);
+				match.second->setValue(value{val});
+			} else if ((**same_name).getValue().isStringList()) {
+				std::vector<std::string> const& list = (**same_name).getValue().asStringList();
+				val.insert(val.begin(), list.begin(), list.end());
+				(**same_name).setValue(value{val});
+			} else {
+				(**same_name).setValue(value{val});
+			}
+		} else {
+			collected.push_back(match.second);
+		}
+		return true;
+	}
+
+	inline std::pair<size_t, std::shared_ptr<LeafPattern>> Argument::single_match(PatternList const& left) const
+	{
+		std::pair<size_t, std::shared_ptr<LeafPattern>> ret {};
+
+		for(size_t i = 0, size = left.size(); i < size; ++i)
+		{
+			auto arg = dynamic_cast<Argument const*>(left[i].get());
+			if (arg) {
+				ret.first = i;
+				ret.second = std::make_shared<Argument>(name(), arg->getValue());
+				break;
+			}
+		}
+
+		return ret;
+	}
+
+	inline std::pair<size_t, std::shared_ptr<LeafPattern>> Command::single_match(PatternList const& left) const
+	{
+		std::pair<size_t, std::shared_ptr<LeafPattern>> ret {};
+
+		for(size_t i = 0, size = left.size(); i < size; ++i)
+		{
+			auto arg = dynamic_cast<Argument const*>(left[i].get());
+			if (arg) {
+				if (name() == arg->getValue()) {
+					ret.first = i;
+					ret.second = std::make_shared<Command>(name(), value{true});
+				}
+				break;
+			}
+		}
+
+		return ret;
+	}
+
+	inline Option Option::parse(std::string const& option_description)
+	{
+		std::string shortOption, longOption;
+		int argcount = 0;
+		value val { false };
+
+		auto double_space = option_description.find("  ");
+		auto options_end = option_description.end();
+		if (double_space != std::string::npos) {
+			options_end = option_description.begin() + static_cast<std::ptrdiff_t>(double_space);
+		}
+
+		static const std::regex pattern {"(-{1,2})?(.*?)([,= ]|$)"};
+		for(std::sregex_iterator i {option_description.begin(), options_end, pattern, std::regex_constants::match_not_null},
+			   e{};
+			i != e;
+			++i)
+		{
+			std::smatch const& match = *i;
+			if (match[1].matched) { // [1] is optional.
+				if (match[1].length()==1) {
+						shortOption = "-" + match[2].str();
+				} else {
+						longOption =  "--" + match[2].str();
+				}
+			} else if (match[2].length() > 0) { // [2] always matches.
+				std::string m = match[2];
+				argcount = 1;
+			} else {
+				// delimeter
+			}
+
+			if (match[3].length() == 0) { // [3] always matches.
+				// Hit end of string. For some reason 'match_not_null' will let us match empty
+				// at the end, and then we'll spin in an infinite loop. So, if we hit an empty
+				// match, we know we must be at the end.
+				break;
+			}
+		}
+
+		if (argcount) {
+			std::smatch match;
+			if (std::regex_search(options_end, option_description.end(),
+						  match,
+						  std::regex{"\\[default: (.*)\\]", std::regex::icase}))
+			{
+				val = match[1].str();
+			}
+		}
+
+		return {std::move(shortOption),
+			std::move(longOption),
+			argcount,
+			std::move(val)};
+	}
+
+	inline std::pair<size_t, std::shared_ptr<LeafPattern>> Option::single_match(PatternList const& left) const
+	{
+		auto thematch = find_if(left.begin(), left.end(), [this](std::shared_ptr<Pattern> const& a) {
+			auto leaf = std::dynamic_pointer_cast<LeafPattern>(a);
+			return leaf && this->name() == leaf->name();
+		});
+		if (thematch == left.end()) {
+			return {};
+		}
+		return { std::distance(left.begin(), thematch), std::dynamic_pointer_cast<LeafPattern>(*thematch) };
+	}
+
+	inline bool Required::match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const {
+		auto l = left;
+		auto c = collected;
+		for(auto const& pattern : fChildren) {
+			bool ret = pattern->match(l, c);
+			if (!ret) {
+				// leave (left, collected) untouched
+				return false;
+			}
+		}
+
+		left = std::move(l);
+		collected = std::move(c);
+		return true;
+	}
+
+	inline bool OneOrMore::match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const
+	{
+		assert(fChildren.size() == 1);
+
+		auto l = left;
+		auto c = collected;
+
+		bool matched = true;
+		size_t times = 0;
+
+		decltype(l) l_;
+		bool firstLoop = true;
+
+		while (matched) {
+			// could it be that something didn't match but changed l or c?
+			matched = fChildren[0]->match(l, c);
+
+			if (matched)
+				++times;
+
+			if (firstLoop) {
+				firstLoop = false;
+			} else if (l == l_) {
+				break;
+			}
+
+			l_ = l;
+		}
+
+		if (times == 0) {
+			return false;
+		}
+
+		left = std::move(l);
+		collected = std::move(c);
+		return true;
+	}
+
+	inline bool Either::match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const
+	{
+		using Outcome = std::pair<PatternList, std::vector<std::shared_ptr<LeafPattern>>>;
+
+		std::vector<Outcome> outcomes;
+
+		for(auto const& pattern : fChildren) {
+			// need a copy so we apply the same one for every iteration
+			auto l = left;
+			auto c = collected;
+			bool matched = pattern->match(l, c);
+			if (matched) {
+				outcomes.emplace_back(std::move(l), std::move(c));
+			}
+		}
+
+		auto min = std::min_element(outcomes.begin(), outcomes.end(), [](Outcome const& o1, Outcome const& o2) {
+			return o1.first.size() < o2.first.size();
+		});
+
+		if (min == outcomes.end()) {
+			// (left, collected) unchanged
+			return false;
+		}
+
+		std::tie(left, collected) = std::move(*min);
+		return true;
+	}
+
 }
 
 #endif
