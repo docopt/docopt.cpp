@@ -17,7 +17,6 @@
 #include <unordered_map>
 #include <map>
 #include <string>
-#include <regex>
 #include <iostream>
 #include <cassert>
 #include <cstddef>
