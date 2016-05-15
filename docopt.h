@@ -15,6 +15,12 @@
 #include <vector>
 #include <string>
 
+#ifdef DOCOPT_HEADER_ONLY
+#define DOCOPT_INLINE inline
+#else 
+#define DOCOPT_INLINE
+#endif
+
 namespace docopt {
 	
 	// Usage string could not be parsed (ie, the developer did something wrong)
@@ -24,10 +30,10 @@ namespace docopt {
 	struct DocoptArgumentError : std::runtime_error { using runtime_error::runtime_error; };
 	
 	// Arguments contained '--help' and parsing was aborted early
-	struct DocoptExitHelp : std::runtime_error { DocoptExitHelp(); };
-	
+	struct DocoptExitHelp : std::runtime_error { DocoptExitHelp() : std::runtime_error("Docopt --help argument encountered"){} };
+
 	// Arguments contained '--version' and parsing was aborted early
-	struct DocoptExitVersion : std::runtime_error { DocoptExitVersion(); };
+	struct DocoptExitVersion : std::runtime_error { DocoptExitVersion() : std::runtime_error("Docopt --version argument encountered") {} };
 	
 	/// Parse user options from the given option string.
 	///
@@ -61,5 +67,9 @@ namespace docopt {
 					    std::string const& version = {},
 					    bool options_first = false) noexcept;
 }
+
+#ifdef DOCOPT_HEADER_ONLY
+#include "docopt.cpp"
+#endif
 
 #endif /* defined(docopt__docopt_h_) */
