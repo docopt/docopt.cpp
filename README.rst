@@ -80,7 +80,8 @@ to work with docopt:
 
 GCC-4.8 can work, but the std::regex module needs to be replaced with ``Boost.Regex``.
 In that case, you will need to define ``DOCTOPT_USE_BOOST_REGEX`` when compiling
-docopt, and link your code with the appropriated Boost libraries.
+docopt, and link your code with the appropriated Boost libraries. A relativley
+recent version of Boost is needed: 1.55 works, but 1.46 does not for example.
 
 This port is licensed under the MIT license, just like the original module.
 However, we are also dual-licensing this code under the Boost License, version 1.0,
