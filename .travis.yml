@@ -10,9 +10,16 @@ matrix:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'george-edison55-precise-backports']
           packages: ["g++-5", "cmake-data", "cmake"]
+    - os: linux
+      env:
+        - COMPILER=g++-4.8 USE_BOOST_REGEX=ON
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test', 'george-edison55-precise-backports', 'boost-latest']
+          packages: ["g++-4.8", "cmake-data", "cmake", "libboost-regex1.55-dev"]
 
     - os: linux
-      env: 
+      env:
         - COMPILER=clang++-3.6 STDLIB=libc++
       addons:
         apt:
@@ -20,7 +27,7 @@ matrix:
           packages: ["clang-3.6", "cmake-data", "cmake"]
 
     - os: linux
-      env: 
+      env:
         - COMPILER=clang++-3.7 STDLIB=libc++
       addons:
         apt:
@@ -29,13 +36,13 @@ matrix:
 
     - os: osx
       osx_image: xcode6.4
-      env: 
+      env:
         - COMPILER=clang++ V='Apple LLVM 6.4'
         - COMPILER=clang++ V='Apple LLVM 6.4' WITH_CPP14=true
 
     - os: osx
       osx_image: xcode7
-      env: 
+      env:
         - COMPILER=clang++ V='Apple LLVM 7.0'
         - COMPILER=clang++ V='Apple LLVM 7.0' WITH_CPP14=true
 
@@ -48,6 +55,12 @@ before_install:
   - CMAKE_CXX_FLAGS+=" -Wall"
 
   - if [[ "${WITH_CPP14}" == "true" ]]; then CMAKE_OPTIONS+=" -DCMAKE_CXX_STANDARD=14"; fi
+  - |
+    if [[ "${USE_BOOST_REGEX}" == "ON" ]]; then
+        CMAKE_OPTIONS+=" -DUSE_BOOST_REGEX=ON"
+        CMAKE_OPTIONS+=" -DBoost_REGEX_LIBRARY_DEBUG=/usr/lib/x86_64-linux-gnu/libboost_regex.so.1.55.0"
+        CMAKE_OPTIONS+=" -DBoost_REGEX_LIBRARY_RELEASE=/usr/lib/x86_64-linux-gnu/libboost_regex.so.1.55.0"
+    fi
   - if [[ "${STDLIB}" == "libc++" ]]; then CMAKE_CXX_FLAGS+=" -stdlib=libc++"; fi
 
   - sh ${COMPILER} --version || true
@@ -58,6 +71,6 @@ before_script:
   - cd build
   - cmake -DCMAKE_CXX_COMPILER=${COMPILER} -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} -DWITH_TESTS=1 -DWITH_EXAMPLE=1 ${CMAKE_OPTIONS} ..
 
-script: 
+script:
   - cmake --build .
   - python run_tests
