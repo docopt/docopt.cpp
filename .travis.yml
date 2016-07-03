@@ -63,7 +63,7 @@ before_install:
     fi
   - if [[ "${STDLIB}" == "libc++" ]]; then CMAKE_CXX_FLAGS+=" -stdlib=libc++"; fi
 
-  - sh ${COMPILER} --version || true
+  - ${COMPILER} --version
 
 before_script:
   - rm -rf build/
