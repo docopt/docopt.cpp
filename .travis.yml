@@ -49,7 +49,7 @@ matrix:
 before_install:
   - |
     if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
-      brew install cmake
+      brew rm --force cmake && brew install cmake
     fi
 
   - CMAKE_CXX_FLAGS+=" -Wall"
