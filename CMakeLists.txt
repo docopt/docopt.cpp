@@ -8,6 +8,7 @@ include(GNUInstallDirs)
 #============================================================================
 option(WITH_TESTS "Build tests." OFF)
 option(WITH_EXAMPLE "Build example." OFF)
+option(USE_BOOST_REGEX "Replace std::regex with Boost.Regex" OFF)
 
 #============================================================================
 # Internal compiler options
@@ -50,6 +51,19 @@ target_include_directories(docopt_s PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DI
 if(NOT MSVC)
 	set_target_properties(docopt PROPERTIES OUTPUT_NAME docopt)
 	set_target_properties(docopt_s PROPERTIES OUTPUT_NAME docopt)
+endif()
+
+if(USE_BOOST_REGEX)
+	add_definitions("-DDOCTOPT_USE_BOOST_REGEX")
+	# This is needed on Linux, where linking a static library into docopt.so
+	# fails because boost static libs are not compiled with -fPIC
+	set(Boost_USE_STATIC_LIBS OFF)
+    find_package(Boost 1.53 REQUIRED COMPONENTS regex)
+    include_directories(${Boost_INCLUDE_DIRS})
+    target_link_libraries(docopt ${Boost_LIBRARIES})
+	if(WITH_STATIC)
+		target_link_libraries(docopt_s ${Boost_LIBRARIES})
+	endif()
 endif()
 
 #============================================================================

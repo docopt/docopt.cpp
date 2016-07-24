@@ -42,8 +42,8 @@ and instead can write only the help message--*the way you want it*.
 
     int main(int argc, const char** argv)
     {
-        std::map<std::string, docopt::value> args 
-            = docopt::docopt(USAGE, 
+        std::map<std::string, docopt::value> args
+            = docopt::docopt(USAGE,
                              { argv + 1, argv + argc },
                              true,               // show help if requested
                              "Naval Fate 2.0");  // version string
@@ -78,7 +78,10 @@ to work with docopt:
 - GCC 4.9
 - Visual C++ 2015 RC
 
-Note that GCC-4.8 will not work due to its missing the ``regex`` module. 
+GCC-4.8 can work, but the std::regex module needs to be replaced with ``Boost.Regex``.
+In that case, you will need to define ``DOCTOPT_USE_BOOST_REGEX`` when compiling
+docopt, and link your code with the appropriated Boost libraries. A relativley
+recent version of Boost is needed: 1.55 works, but 1.46 does not for example.
 
 This port is licensed under the MIT license, just like the original module.
 However, we are also dual-licensing this code under the Boost License, version 1.0,
@@ -92,8 +95,8 @@ The differences from the Python port are:
 * a ``docopt::value`` type to hold the various value types that can be parsed.
   We considered using boost::variant, but it seems better to have no external
   dependencies (beyond a good STL).
-* because C++ is statically-typed and Python is not, we had to make some 
-  changes to the interfaces of the internal parse tree types. 
+* because C++ is statically-typed and Python is not, we had to make some
+  changes to the interfaces of the internal parse tree types.
 * because ``std::regex`` does not have an equivalent to Python's regex.split,
   some of the regex's had to be restructured and additional loops used.
 
@@ -126,7 +129,7 @@ API
 - ``argv`` is a vector of strings representing the args passed. Although
   main usually takes a ``(int argc, const char** argv)`` pair, you can
   pass the value ``{argv+1, argv+argc}`` to generate the vector automatically.
-  (Note we skip the argv[0] argument!) Alternatively you can supply a list of 
+  (Note we skip the argv[0] argument!) Alternatively you can supply a list of
   strings like ``{ "--verbose", "-o", "hai.txt" }``.
 
 - ``help``, by default ``true``, specifies whether the parser should
@@ -155,8 +158,8 @@ API
   compatibility with POSIX, or if you want to dispatch your arguments
   to other programs.
 
-The **return** value is a ``map<string, docopt::value>`` with options, 
-arguments and commands as keys, spelled exactly like in your help message.  
+The **return** value is a ``map<string, docopt::value>`` with options,
+arguments and commands as keys, spelled exactly like in your help message.
 Long versions of options are given priority. For example, if you invoke the
 top example as::
 
@@ -372,7 +375,7 @@ We have an extensive list of `examples
 every aspect of functionality of **docopt**.  Try them out, read the
 source if in doubt.
 
-There are also very intersting applications and ideas at that page. 
+There are also very intersting applications and ideas at that page.
 Check out the sister project for more information!
 
 Subparsers, multi-level help and *huge* applications (like git)
@@ -397,7 +400,7 @@ a C++ test case runner (run_testcase.cpp)::
 
   $ clang++ --std=c++11 --stdlib=libc++ docopt.cpp run_testcase.cpp -o run_testcase
   $ python run_tests.py
-  PASS (175) 
+  PASS (175)
 
 You can also compile the example shown at the start (included as example.cpp)::
 
@@ -424,10 +427,10 @@ You can also compile the example shown at the start (included as example.cpp)::
 Development
 ---------------------------------------------------
 
-Comments and suggestions are *very* welcome! If you find issues, please 
+Comments and suggestions are *very* welcome! If you find issues, please
 file them and help improve our code!
 
-Please note, however, that we have tried to stay true to the original 
+Please note, however, that we have tried to stay true to the original
 Python code. If you have any major patches, structural changes, or new features,
 we might want to first negotiate these changes into the Python code first.
 However, bring it up! Let's hear it!
@@ -439,4 +442,3 @@ Changelog
 first release with stable API will be 1.0.0 (soon).
 
 - 0.6.1 The initial C++ port of docopt.py
-
