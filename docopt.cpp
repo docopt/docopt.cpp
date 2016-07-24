@@ -531,7 +531,7 @@ std::vector<Option> parse_defaults(std::string const& doc) {
 
 	std::vector<Option> defaults;
 	for (auto s : parse_section("options:", doc)) {
-		s.erase(s.begin(), s.begin() + s.find(':') + 1); // get rid of "options:"
+		s.erase(s.begin(), s.begin() + static_cast<std::ptrdiff_t>(s.find(':')) + 1); // get rid of "options:"
 
 		for (const auto& opt : regex_split(s, re_delimiter)) {
 			if (starts_with(opt, "-")) {
