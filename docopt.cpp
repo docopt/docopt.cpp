@@ -166,15 +166,19 @@ static std::vector<std::string> parse_section(std::string const& name, std::stri
 	// characters. For this reason, following constructions are used instead:
 	// (?:^|\\n) - start of a line;
 	// (?=\\n|$) - end of a line.
+	//
 	// ECMAScript regex only has "?=" for a non-matching lookahead. In order to make sure we always have
 	// a newline to anchor our matching, we have to avoid matching the final newline of each grouping.
+	//
+	// The wildcard `.` matches any single character including the newline character in Boost.Regex. So,
+	// `[^\\n]` construction is used instead.
 	std::regex const re_section_pattern {
-		"(?:^|\\n)("          // A section begins at start of a line and consists of:
-		  ".*" + name + ".*"  //  - a line that contains the section's name; and
-		  "(?:"               //  - several
-		    "\\n+[ \\t].*"    // indented lines possibly separated by empty lines.
+		"(?:^|\\n)("                    // A section begins at start of a line and consists of:
+		  "[^\\n]*" + name + "[^\\n]*"  //  - a line that contains the section's name; and
+		  "(?:"                         //  - several
+		    "\\n+[ \\t][^\\n]*"         // indented lines possibly separated by empty lines.
 		  ")*"
-		")(?=\\n|$)",         // The section ends at the end of a line.
+		")(?=\\n|$)",                   // The section ends at the end of a line.
 		std::regex::icase
 	};
 
