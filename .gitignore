@@ -6,6 +6,7 @@
 # Compiled Dynamic libraries
 *.so
 *.dylib
+*.dll
 
 # Compiled Static libraries
 *.lai
@@ -16,3 +17,16 @@
 example
 naval_fate
 run_testcase
+run_testcase.exe
+
+# CMake temporary files
+CMakeCache.txt
+CMakeFiles
+CPackConfig.cmake
+CPackSourceConfig.cmake
+Makefile
+cmake_install.cmake
+docopt-config-version.cmake
+
+# Files configured by CMake
+run_tests
