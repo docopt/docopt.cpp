@@ -39,11 +39,20 @@ set(docopt_HEADERS
 #============================================================================
 # Compile targets
 #============================================================================
-add_library(docopt_o OBJECT ${docopt_SOURCES} ${docopt_HEADERS})
-set_target_properties(docopt_o PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+if(XCODE)
+    # Xcode does not support libraries with only object files as sources.
+    # See https://cmake.org/cmake/help/v3.0/command/add_library.html?highlight=add_library
+    add_library(docopt SHARED ${docopt_SOURCES} ${docopt_HEADERS})
+    add_library(docopt_s STATIC ${docopt_SOURCES} ${docopt_HEADERS})
+else()
+    # If not using Xcode, we will create an intermediate object target to avoid
+    # compiling the source code twice.
+    add_library(docopt_o OBJECT ${docopt_SOURCES} ${docopt_HEADERS})
+    set_target_properties(docopt_o PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 
-add_library(docopt SHARED $<TARGET_OBJECTS:docopt_o>)
-add_library(docopt_s STATIC $<TARGET_OBJECTS:docopt_o>)
+    add_library(docopt SHARED $<TARGET_OBJECTS:docopt_o>)
+    add_library(docopt_s STATIC $<TARGET_OBJECTS:docopt_o>)
+endif()
 
 target_include_directories(docopt PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}> $<INSTALL_INTERFACE:include/docopt>)
 target_include_directories(docopt_s PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}> $<INSTALL_INTERFACE:include/docopt>)
