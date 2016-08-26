@@ -57,6 +57,9 @@ endif()
 target_include_directories(docopt PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}> $<INSTALL_INTERFACE:include/docopt>)
 target_include_directories(docopt_s PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}> $<INSTALL_INTERFACE:include/docopt>)
 
+# To control the exporting of symbols (on Windows).
+set_target_properties(docopt PROPERTIES DEFINE_SYMBOL DOCOPT_EXPORTS)
+
 if(NOT MSVC)
 	set_target_properties(docopt PROPERTIES OUTPUT_NAME docopt)
 	set_target_properties(docopt_s PROPERTIES OUTPUT_NAME docopt)

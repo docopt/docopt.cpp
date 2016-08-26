@@ -16,9 +16,22 @@
 #include <string>
 
 #ifdef DOCOPT_HEADER_ONLY
-#define DOCOPT_INLINE inline
+    #define DOCOPT_INLINE inline
+    #define DOCOPTAPI
 #else 
-#define DOCOPT_INLINE
+    #define DOCOPT_INLINE
+
+    // On Windows, export certain symbols so they are available
+    // to users of docopt.dll (shared library).
+    #ifdef WIN32
+        #ifdef DOCOPT_EXPORTS
+            #define DOCOPTAPI __declspec(dllexport)
+        #else
+            #define DOCOPTAPI __declspec(dllimport)
+        #endif
+    #else
+        #define DOCOPTAPI
+    #endif
 #endif
 
 namespace docopt {
@@ -48,7 +61,7 @@ namespace docopt {
 	/// @throws DocoptExitHelp if 'help' is true and the user has passed the '--help' argument
 	/// @throws DocoptExitVersion if 'version' is true and the user has passed the '--version' argument
 	/// @throws DocoptArgumentError if the user's argv did not match the usage patterns
-	std::map<std::string, value> docopt_parse(std::string const& doc,
+	std::map<std::string, value> DOCOPTAPI docopt_parse(std::string const& doc,
 					    std::vector<std::string> const& argv,
 					    bool help = true,
 					    bool version = true,
@@ -61,7 +74,7 @@ namespace docopt {
 	///  * DocoptExitHelp - print usage string and terminate (with exit code 0)
 	///  * DocoptExitVersion - print version and terminate (with exit code 0)
 	///  * DocoptArgumentError - print error and usage string and terminate (with exit code -1)
-	std::map<std::string, value> docopt(std::string const& doc,
+	std::map<std::string, value> DOCOPTAPI docopt(std::string const& doc,
 					    std::vector<std::string> const& argv,
 					    bool help = true,
 					    std::string const& version = {},
@@ -69,7 +82,7 @@ namespace docopt {
 }
 
 #ifdef DOCOPT_HEADER_ONLY
-#include "docopt.cpp"
+    #include "docopt.cpp"
 #endif
 
 #endif /* defined(docopt__docopt_h_) */
