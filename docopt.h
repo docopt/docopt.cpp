@@ -88,7 +88,7 @@ namespace docopt {
 }
 
 #ifdef DOCOPT_HEADER_ONLY
-#include "docopt.cpp"
+    #include "docopt.cpp"
 #endif
 
 #endif /* defined(docopt__docopt_h_) */
