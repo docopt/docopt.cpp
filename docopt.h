@@ -67,7 +67,7 @@ namespace docopt {
 	/// @throws DocoptExitHelp if 'help' is true and the user has passed the '--help' argument
 	/// @throws DocoptExitVersion if 'version' is true and the user has passed the '--version' argument
 	/// @throws DocoptArgumentError if the user's argv did not match the usage patterns
-    std::map<std::string, value> DOCOPT_API docopt_parse(std::string const& doc,
+	std::map<std::string, value> DOCOPT_API docopt_parse(std::string const& doc,
 					    std::vector<std::string> const& argv,
 					    bool help = true,
 					    bool version = true,
