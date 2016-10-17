@@ -40,10 +40,10 @@ set(docopt_HEADERS
 # Compile targets
 #============================================================================
 if(MSVC OR XCODE)
-	# MSVC requires __declspec() attributes, which are achieved via the 
-	# DOCOPT_DLL and DOCOPT_EXPORTS macros below. Since those macros are only
-	# defined when building a shared library, we must build the shared and
-	# static libraries completely separately.
+    # MSVC requires __declspec() attributes, which are achieved via the 
+    # DOCOPT_DLL and DOCOPT_EXPORTS macros below. Since those macros are only
+    # defined when building a shared library, we must build the shared and
+    # static libraries completely separately.
     # Xcode does not support libraries with only object files as sources.
     # See https://cmake.org/cmake/help/v3.0/command/add_library.html?highlight=add_library
     add_library(docopt SHARED ${docopt_SOURCES} ${docopt_HEADERS})
