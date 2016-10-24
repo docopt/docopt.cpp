@@ -17,20 +17,26 @@
 
 #ifdef DOCOPT_HEADER_ONLY
     #define DOCOPT_INLINE inline
-    #define DOCOPTAPI
+    #define DOCOPT_API
 #else 
     #define DOCOPT_INLINE
 
-    // On Windows, export certain symbols so they are available
-    // to users of docopt.dll (shared library).
-    #ifdef WIN32
+    // With Microsoft Visual Studio, export certain symbols so they 
+    // are available to users of docopt.dll (shared library). The DOCOPT_DLL
+    // macro should be defined if building a DLL (with Visual Studio),
+    // and by clients using the DLL. The CMakeLists.txt and the
+    // docopt-config.cmake it generates handle this.
+    #ifdef DOCOPT_DLL
+        // Whoever is *building* the DLL should define DOCOPT_EXPORTS.
+        // The CMakeLists.txt that comes with docopt does this.
+        // Clients of docopt.dll should NOT define DOCOPT_EXPORTS.
         #ifdef DOCOPT_EXPORTS
-            #define DOCOPTAPI __declspec(dllexport)
+            #define DOCOPT_API __declspec(dllexport)
         #else
-            #define DOCOPTAPI __declspec(dllimport)
+            #define DOCOPT_API __declspec(dllimport)
         #endif
     #else
-        #define DOCOPTAPI
+        #define DOCOPT_API
     #endif
 #endif
 
@@ -61,7 +67,7 @@ namespace docopt {
 	/// @throws DocoptExitHelp if 'help' is true and the user has passed the '--help' argument
 	/// @throws DocoptExitVersion if 'version' is true and the user has passed the '--version' argument
 	/// @throws DocoptArgumentError if the user's argv did not match the usage patterns
-	std::map<std::string, value> DOCOPTAPI docopt_parse(std::string const& doc,
+	std::map<std::string, value> DOCOPT_API docopt_parse(std::string const& doc,
 					    std::vector<std::string> const& argv,
 					    bool help = true,
 					    bool version = true,
@@ -74,7 +80,7 @@ namespace docopt {
 	///  * DocoptExitHelp - print usage string and terminate (with exit code 0)
 	///  * DocoptExitVersion - print version and terminate (with exit code 0)
 	///  * DocoptArgumentError - print error and usage string and terminate (with exit code -1)
-	std::map<std::string, value> DOCOPTAPI docopt(std::string const& doc,
+	std::map<std::string, value> DOCOPT_API docopt(std::string const& doc,
 					    std::vector<std::string> const& argv,
 					    bool help = true,
 					    std::string const& version = {},
