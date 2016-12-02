@@ -441,4 +441,5 @@ Changelog
 **docopt** follows `semantic versioning <http://semver.org>`_.  The
 first release with stable API will be 1.0.0 (soon).
 
-- 0.6.1 The initial C++ port of docopt.py
+- 0.6.2 Bugfix release (still based on docopt 0.6.1)
+- 0.6.1 The initial C++ port of docopt.py (based on docopt 0.6.1)
