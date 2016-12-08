@@ -53,6 +53,10 @@ if(NOT MSVC)
 	set_target_properties(docopt_s PROPERTIES OUTPUT_NAME docopt)
 endif()
 
+set_target_properties(docopt PROPERTIES
+        VERSION ${docopt.cpp_VERSION}
+        SOVERSION 0)
+
 if(USE_BOOST_REGEX)
 	add_definitions("-DDOCTOPT_USE_BOOST_REGEX")
 	# This is needed on Linux, where linking a static library into docopt.so
