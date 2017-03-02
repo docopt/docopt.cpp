@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
-project(docopt.cpp VERSION 0.6.1)
+project(docopt.cpp VERSION 0.6.2)
 
 include(GNUInstallDirs)
 
