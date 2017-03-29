@@ -23,8 +23,8 @@ namespace docopt {
 		/// An empty value
 		value() {}
 
-		value(std::string);
-		value(std::vector<std::string>);
+		explicit value(std::string);
+		explicit value(std::vector<std::string>);
 		
 		explicit value(bool);
 		explicit value(long);

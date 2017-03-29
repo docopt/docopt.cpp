@@ -140,7 +140,7 @@ namespace docopt {
 	class BranchPattern
 	: public Pattern {
 	public:
-		BranchPattern(PatternList children = {})
+		explicit BranchPattern(PatternList children = {})
 		: fChildren(std::move(children))
 		{}
 
