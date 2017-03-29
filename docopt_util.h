@@ -19,9 +19,6 @@ namespace std {
 #include <regex>
 #endif
 
-#pragma mark -
-#pragma mark General utility
-
 namespace {
 	bool starts_with(std::string const& str, std::string const& prefix)
 	{

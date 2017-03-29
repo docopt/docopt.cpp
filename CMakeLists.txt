@@ -20,11 +20,6 @@ if(NOT CMAKE_CXX_STANDARD OR CMAKE_CXX_STANDARD LESS 11)
 	set(CMAKE_CXX_STANDARD 11)
 endif()
 
-# Suppression of "unknown pragma" warning on GCC
-if(CMAKE_COMPILER_IS_GNUCXX)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas") # Code uses #pragma mark
-endif()
-
 #============================================================================
 # Sources & headers
 #============================================================================
