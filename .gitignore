@@ -30,3 +30,9 @@ docopt-config-version.cmake
 
 # Files configured by CMake
 run_tests
+
+# Separate build directory
+build/
+
+# CLion
+.idea/

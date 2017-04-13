@@ -12,7 +12,7 @@
 #include <vector>
 #include <memory>
 #include <unordered_set>
-#include <assert.h>
+#include <cassert>
 
 // Workaround GCC 4.8 not having std::regex
 #if DOCTOPT_USE_BOOST_REGEX
@@ -102,27 +102,27 @@ namespace docopt {
 		  fValue(std::move(v))
 		{}
 
-		virtual std::vector<Pattern*> flat(bool (*filter)(Pattern const*)) override {
+		std::vector<Pattern*> flat(bool (*filter)(Pattern const*)) override {
 			if (filter(this)) {
 				return { this };
 			}
 			return {};
 		}
 
-		virtual void collect_leaves(std::vector<LeafPattern*>& lst) override final {
+		void collect_leaves(std::vector<LeafPattern*>& lst) final {
 			lst.push_back(this);
 		}
 
-		virtual bool match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const override;
+		bool match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const override;
 
-		virtual bool hasValue() const override { return static_cast<bool>(fValue); }
+		bool hasValue() const override { return static_cast<bool>(fValue); }
 
 		value const& getValue() const { return fValue; }
 		void setValue(value&& v) { fValue = std::move(v); }
 
-		virtual std::string const& name() const override { return fName; }
+		std::string const& name() const override { return fName; }
 
-		virtual size_t hash() const override {
+		size_t hash() const override {
 			size_t seed = typeid(*this).hash_code();
 			hash_combine(seed, fName);
 			hash_combine(seed, fValue);
@@ -151,7 +151,7 @@ namespace docopt {
 			return *this;
 		}
 
-		virtual std::string const& name() const override {
+		std::string const& name() const override {
 			throw std::runtime_error("Logic error: name() shouldnt be called on a BranchPattern");
 		}
 
@@ -159,7 +159,7 @@ namespace docopt {
 			throw std::runtime_error("Logic error: name() shouldnt be called on a BranchPattern");
 		}
 
-		virtual std::vector<Pattern*> flat(bool (*filter)(Pattern const*)) override {
+		std::vector<Pattern*> flat(bool (*filter)(Pattern const*)) override {
 			if (filter(this)) {
 				return {this};
 			}
@@ -172,7 +172,7 @@ namespace docopt {
 			return ret;
 		}
 
-		virtual void collect_leaves(std::vector<LeafPattern*>& lst) override final {
+		void collect_leaves(std::vector<LeafPattern*>& lst) final {
 			for(auto& child : fChildren) {
 				child->collect_leaves(lst);
 			}
@@ -200,7 +200,7 @@ namespace docopt {
 			}
 		}
 
-		virtual size_t hash() const override {
+		size_t hash() const override {
 			size_t seed = typeid(*this).hash_code();
 			hash_combine(seed, fChildren.size());
 			for(auto const& child : fChildren) {
@@ -218,10 +218,10 @@ namespace docopt {
 	class Argument
 	: public LeafPattern {
 	public:
-		using LeafPattern::LeafPattern;
+		using LeafPattern::&const LeafPattern;
 
 	protected:
-		virtual std::pair<size_t, std::shared_ptr<LeafPattern>> single_match(PatternList const& left) const override;
+		std::pair<size_t, std::shared_ptr<LeafPattern>> single_match(PatternList const& left) const override;
 	};
 
 	class Command : public Argument {
@@ -231,7 +231,7 @@ namespace docopt {
 		{}
 
 	protected:
-		virtual std::pair<size_t, std::shared_ptr<LeafPattern>> single_match(PatternList const& left) const override;
+		std::pair<size_t, std::shared_ptr<LeafPattern>> single_match(PatternList const& left) const override;
 	};
 
 	class Option final
@@ -268,7 +268,7 @@ namespace docopt {
 		std::string const& shortOption() const { return fShortOption; }
 		int argCount() const { return fArgcount; }
 
-		virtual size_t hash() const override {
+		size_t hash() const override {
 			size_t seed = LeafPattern::hash();
 			hash_combine(seed, fShortOption);
 			hash_combine(seed, fLongOption);
@@ -277,7 +277,7 @@ namespace docopt {
 		}
 
 	protected:
-		virtual std::pair<size_t, std::shared_ptr<LeafPattern>> single_match(PatternList const& left) const override;
+		std::pair<size_t, std::shared_ptr<LeafPattern>> single_match(PatternList const& left) const override;
 
 	private:
 		std::string fShortOption;
@@ -287,14 +287,14 @@ namespace docopt {
 
 	class Required : public BranchPattern {
 	public:
-		using BranchPattern::BranchPattern;
+		using BranchPattern::&const BranchPattern;
 
 		bool match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const override;
 	};
 
 	class Optional : public BranchPattern {
 	public:
-		using BranchPattern::BranchPattern;
+		using BranchPattern::&const BranchPattern;
 
 		bool match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const override {
 			for(auto const& pattern : fChildren) {
@@ -310,14 +310,14 @@ namespace docopt {
 
 	class OneOrMore : public BranchPattern {
 	public:
-		using BranchPattern::BranchPattern;
+		using BranchPattern::&const BranchPattern;
 
 		bool match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const override;
 	};
 
 	class Either : public BranchPattern {
 	public:
-		using BranchPattern::BranchPattern;
+		using BranchPattern::&const BranchPattern;
 
 		bool match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const override;
 	};
@@ -360,7 +360,7 @@ namespace docopt {
 			children.erase(child_iter);
 
 			// expand the branch in the appropriate way
-			if (Either* either = dynamic_cast<Either*>(child.get())) {
+			if (auto* either = dynamic_cast<Either*>(child.get())) {
 				// "[e] + children" for each child 'e' in Either
 				for(auto const& eitherChild : either->children()) {
 					PatternList group = { eitherChild };
@@ -368,7 +368,7 @@ namespace docopt {
 
 					groups.emplace_back(std::move(group));
 				}
-			} else if (OneOrMore* oneOrMore = dynamic_cast<OneOrMore*>(child.get())) {
+			} else if (auto* oneOrMore = dynamic_cast<OneOrMore*>(child.get())) {
 				// child.children * 2 + children
 				auto const& subchildren = oneOrMore->children();
 				PatternList group = subchildren;
@@ -377,7 +377,7 @@ namespace docopt {
 
 				groups.emplace_back(std::move(group));
 			} else { // Required, Optional, OptionsShortcut
-				BranchPattern* branch = dynamic_cast<BranchPattern*>(child.get());
+				auto* branch = dynamic_cast<BranchPattern*>(child.get());
 
 				// child.children + children
 				PatternList group = branch->children();
@@ -400,7 +400,7 @@ namespace docopt {
 				if (group_set.count(e) == 1)
 					continue;
 
-				LeafPattern* leaf = dynamic_cast<LeafPattern*>(e.get());
+				auto* leaf = dynamic_cast<LeafPattern*>(e.get());
 				if (!leaf) continue;
 
 				bool ensureList = false;
@@ -410,7 +410,7 @@ namespace docopt {
 					ensureInt = true;
 				} else if (dynamic_cast<Argument*>(leaf)) {
 					ensureList = true;
-				} else if (Option* o = dynamic_cast<Option*>(leaf)) {
+				} else if (auto* o = dynamic_cast<Option*>(leaf)) {
 					if (o->argCount()) {
 						ensureList = true;
 					} else {
@@ -562,7 +562,7 @@ namespace docopt {
 			std::smatch match;
 			if (std::regex_search(options_end, option_description.end(),
 						  match,
-						  std::regex{"\\[default: (.*)\\]", std::regex::icase}))
+						  std::regex{R"(\[default: (.*)\])", std::regex::icase}))
 			{
 				val = match[1].str();
 			}
