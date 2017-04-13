@@ -30,3 +30,10 @@ docopt-config-version.cmake
 
 # Files configured by CMake
 run_tests
+
+# CLion cruft
+.idea/
+cmake-build-debug/
+
+# Separate build directory
+build/
