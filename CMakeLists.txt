@@ -25,6 +25,19 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas") # Code uses #pragma mark
 endif()
 
+# define library postfix so that different builds will produce 
+# distinguished libraries
+set(CMAKE_RELEASE_POSTFIX "_r" CACHE string "Release postfix")
+set(CMAKE_DEBUG_POSTFIX "_d" CACHE string "Debug postfix")
+set(CMAKE_RELWITHDEBINFO_POSTFIX "_rd" CACHE string 
+    "Release with debug info postfix")
+set(CMAKE_MINSIZEREL_POSTFIX "_mr" CACHE string 
+    "Minimum size release postfix")
+mark_as_advanced(CMAKE_RELEASE_POSTFIX)
+mark_as_advanced(CMAKE_DEBUG_POSTFIX)
+mark_as_advanced(CMAKE_RELWITHDEBINFO_POSTFIX)
+mark_as_advanced(CMAKE_MINSIZEREL_POSTFIX)
+
 #============================================================================
 # Sources & headers
 #============================================================================
