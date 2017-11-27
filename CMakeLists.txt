@@ -58,6 +58,9 @@ else()
     add_library(docopt_s STATIC $<TARGET_OBJECTS:docopt_o>)
 endif()
 
+set_property(TARGET docopt PROPERTY VERSION ${PROJECT_VERSION})
+set_property(TARGET docopt_s PROPERTY VERSION ${PROJECT_VERSION})
+
 target_include_directories(docopt PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}> $<INSTALL_INTERFACE:include/docopt>)
 target_include_directories(docopt_s PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}> $<INSTALL_INTERFACE:include/docopt>)
 
