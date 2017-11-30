@@ -9,7 +9,7 @@ docopt_headers = [ 'docopt.h',
                    'docopt_value.h']
 
 stdlib_includes = []
-if meson.is_cross_build()
+if host_machine.system() == 'android'
   stdlib_includes += include_directories(
     [join_paths(meson.get_cross_property('stdlib_rootdir'), 'include'),
      join_paths(meson.get_cross_property('stdlib_rootdir'), 'libs/armeabi-v7a/include'),
