@@ -322,8 +322,10 @@ namespace docopt {
 		bool match(PatternList& left, std::vector<std::shared_ptr<LeafPattern>>& collected) const override;
 	};
 
+#if 0
 #pragma mark -
 #pragma mark inline implementations
+#endif
 
 	inline std::vector<LeafPattern*> Pattern::leaves()
 	{
