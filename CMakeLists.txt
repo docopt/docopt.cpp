@@ -125,6 +125,14 @@ write_basic_package_version_file("${PROJECT_BINARY_DIR}/docopt-config-version.cm
 install(FILES docopt-config.cmake ${PROJECT_BINARY_DIR}/docopt-config-version.cmake DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
 install(EXPORT ${export_name} DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
 
+# build directory project config
+export(EXPORT ${export_name}
+	FILE docopt-config.cmake
+)
+
+# add packe to CMake registry
+export(PACKAGE docopt)
+
 #============================================================================
 # CPack
 #============================================================================
