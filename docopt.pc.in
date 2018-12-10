@@ -1,9 +1,8 @@
-libdir=@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@
-includedir=@CMAKE_INSTALL_PREFIX@/include/docopt
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
 
 Name: docopt.cpp
 Description: C++11 port of docopt
 Version: @PROJECT_VERSION@
-Requires:
 Libs: -L${libdir} -ldocopt
 Cflags: -I${includedir}
