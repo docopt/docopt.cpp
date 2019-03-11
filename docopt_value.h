@@ -14,6 +14,7 @@
 #include <vector>
 #include <functional> // std::hash
 #include <iosfwd>
+#include <cstdlib>
 
 namespace docopt {
 
@@ -280,9 +281,9 @@ namespace docopt {
 		// Attempt to convert a string to a long
 		if (kind == Kind::String) {
 			const std::string& str = variant.strValue;
-			std::size_t pos;
-			const long ret = stol(str, &pos); // Throws if it can't convert
-			if (pos != str.length()) {
+			char* pos;
+			const long ret = std::strtol(str.c_str(), &pos, 10);
+			if (*pos != 0) {
 				// The string ended in non-digits.
 				throw std::runtime_error( str + " contains non-numeric characters.");
 			}
