@@ -171,7 +171,7 @@ static std::vector<std::string> parse_section(std::string const& name, std::stri
 		"(?:^|\\n)"  // anchored at a linebreak (or start of string)
 		"("
 		   "[^\\n]*" + name + "[^\\n]*(?=\\n?)" // a line that contains the name
-		   "(?:\\n[ \\t].*?(?=\\n|$))*"         // followed by any number of lines that are indented
+		   "(?:\\n*[ \\t].*?(?=\\n|$))*"         // followed by any number of blank lines, or lines that are indented
 		")",
 		std::regex::icase
 	};
