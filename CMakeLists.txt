@@ -50,6 +50,10 @@ else()
     set_target_properties(docopt_o PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 
     add_library(docopt SHARED $<TARGET_OBJECTS:docopt_o>)
+	set_target_properties(docopt PROPERTIES
+			VERSION ${PROJECT_VERSION}
+			SOVERSION ${PROJECT_VERSION_MAJOR}
+			)
     add_library(docopt_s STATIC $<TARGET_OBJECTS:docopt_o>)
 endif()
 
