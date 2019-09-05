@@ -1,9 +1,7 @@
 //
-//  docopt.h
+//  docopt_api.h
 //  docopt
 //
-//  Created by Dmitriy Vetutnev on 2019-09-05.
-//  Copyright (c) 2019 Dmitriy Vetutnev. All rights reserved.
 //
 
 #ifndef docopt__api_h_
