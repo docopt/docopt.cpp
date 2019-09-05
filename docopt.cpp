@@ -610,7 +610,7 @@ static std::pair<Required, std::vector<Option>> create_pattern_tree(std::string 
 
 DOCOPT_INLINE
 std::map<std::string, value>
-docopt::docopt_parse(std::string const& doc,
+docopt_parse(std::string const& doc,
 		     std::vector<std::string> const& argv,
 		     bool help,
 		     bool version,
@@ -687,3 +687,4 @@ docopt(std::string const& doc,
 }
 
 } /* namespace docopt */
+
