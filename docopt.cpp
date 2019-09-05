@@ -21,10 +21,10 @@
 #include <cassert>
 #include <cstddef>
 
-using namespace docopt;
+namespace docopt {
 
 DOCOPT_INLINE
-std::ostream& docopt::operator<<(std::ostream& os, value const& val)
+std::ostream& operator<<(std::ostream& os, value const& val)
 {
 	if (val.isBool()) {
 		bool b = val.asBool();
@@ -660,11 +660,11 @@ docopt::docopt_parse(std::string const& doc,
 
 DOCOPT_INLINE
 std::map<std::string, value>
-docopt::docopt(std::string const& doc,
-	       std::vector<std::string> const& argv,
-	       bool help,
-	       std::string const& version,
-	       bool options_first) noexcept
+docopt(std::string const& doc,
+	   std::vector<std::string> const& argv,
+	   bool help,
+	   std::string const& version,
+	   bool options_first) noexcept
 {
 	try {
 		return docopt_parse(doc, argv, help, !version.empty(), options_first);
@@ -685,3 +685,5 @@ docopt::docopt(std::string const& doc,
 		std::exit(-1);
 	} /* Any other exception is unexpected: let std::terminate grab it */
 }
+
+} /* namespace docopt */
