@@ -10,7 +10,7 @@ environment:
 install:
   - set PATH=%PYTHON%;%PYTHON%\\Scripts\\;%PATH%
 
-build:
+build_script:
   - cmake -G%CMAKE_GENERATOR% ..
   - cmake --build . --config Debug
 
