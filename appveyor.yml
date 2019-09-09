@@ -1,0 +1,18 @@
+skip_tags: true
+
+environment:
+  PYTHON: C:\\Python27-x64
+
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      CMAKE_GENERATOR: Visual Studio 2017 Win64
+
+install:
+  - set PATH=%PYTHON%;%PYTHON%\\Scripts\\;%PATH%
+
+build:
+  - cmake -G%CMAKE_GENERATOR% ..
+  - cmake --build . --config Debug
+
+test_script: false
+
