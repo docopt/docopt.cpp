@@ -9,13 +9,6 @@
 #ifndef docopt__docopt_h_
 #define docopt__docopt_h_
 
-#include "docopt_value.h"
-
-#include <map>
-#include <vector>
-#include <string>
-#include <stdexcept>
-
 #ifdef DOCOPT_HEADER_ONLY
     #define DOCOPT_INLINE inline
     #define DOCOPT_API
@@ -40,6 +33,13 @@
         #define DOCOPT_API
     #endif
 #endif
+
+#include "docopt_value.h"
+
+#include <map>
+#include <vector>
+#include <string>
+#include <stdexcept>
 
 namespace docopt {
 	
