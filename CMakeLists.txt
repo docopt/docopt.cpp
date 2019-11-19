@@ -91,7 +91,10 @@ endif()
 set(export_name "docopt-targets")
 
 # Runtime package
-install(TARGETS docopt EXPORT ${export_name} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(TARGETS docopt EXPORT ${export_name}
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 # Development package
 install(FILES ${docopt_HEADERS} DESTINATION include/docopt)
