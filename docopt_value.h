@@ -105,7 +105,7 @@ namespace docopt {
 	};
 
 	/// Write out the contents to the ostream
-	std::ostream& operator<<(std::ostream&, value const&);
+	DOCOPT_API std::ostream& operator<<(std::ostream&, value const&);
 }
 
 namespace std {
