@@ -1,5 +1,13 @@
 ``docopt.cpp``: A C++11 Port
 ============================
+
+Contents
+--------
+
+.. contents::
+  :local:
+  :depth: 3
+
 docopt creates *beautiful* command-line interfaces
 --------------------------------------------------
 
@@ -58,13 +66,40 @@ and instead can write only the help message--*the way you want it*.
 Beat that! The option parser is generated based on the docstring above
 that is passed to ``docopt::docopt`` function.  ``docopt`` parses the usage
 pattern (``"Usage: ..."``) and option descriptions (lines starting
-with dash "``-``") and ensures that the program invocation matches the
+with a dash "``-``") and ensures that the program invocation matches the
 usage pattern; it parses options, arguments and commands based on
 that. The basic idea is that *a good help message has all necessary
 information in it to make a parser*.
 
+Getting and using
+-----------------
+
+To get *docopt.cpp*, the simplest is to use `Conda <https://github.com/conda-forge/docopt.cpp-feedstock>`_::
+
+    conda install -c conda-forge docopt.cpp
+
+Alternatively manual installation is done using (unix)::
+
+    git clone
+    cmake .
+    make install
+
+To link *docopt.cpp*, the simplest is to use CMake. The general structure of your
+``CMakeLists.txt`` would be as follows::
+
+    cmake_minimum_required(VERSION 3.1)
+
+    project(example)
+
+    find_package(docopt COMPONENTS CXX REQUIRED)
+    include_directories(${DOCOPT_INCLUDE_DIRS})
+
+    add_executable(${PROJECT_NAME} ...)
+
+    target_link_libraries(${PROJECT_NAME} docopt)
+
 C++11 port details
----------------------------------------------------
+------------------
 
 This is a port of the ``docopt.py`` module (https://github.com/docopt/docopt),
 and we have tried to maintain full feature parity (and code structure) as the
@@ -80,7 +115,7 @@ to work with docopt:
 
 GCC-4.8 can work, but the std::regex module needs to be replaced with ``Boost.Regex``.
 In that case, you will need to define ``DOCTOPT_USE_BOOST_REGEX`` when compiling
-docopt, and link your code with the appropriated Boost libraries. A relativley
+docopt, and link your code with the appropriated Boost libraries. A relatively
 recent version of Boost is needed: 1.55 works, but 1.46 does not for example.
 
 This port is licensed under the MIT license, just like the original module.
@@ -101,7 +136,7 @@ The differences from the Python port are:
   some of the regex's had to be restructured and additional loops used.
 
 API
----------------------------------------------------
+---
 
 .. code:: c++
 
@@ -182,16 +217,15 @@ If any parsing error (in either the usage, or due to incorrect user inputs) is
 encountered, the program will exit with exit code -1.
 
 Note that there is another function that does not exit on error, and instead will
-propogate an exception that you can catch and process as you like. See the docopt.h file
+propagate an exception that you can catch and process as you like. See the docopt.h file
 for information on the exceptions and usage:
 
 .. code:: c++
 
     docopt::docopt_parse(doc, argv, help /* =true */, version /* =true */, options_first /* =false)
 
-
 Help message format
----------------------------------------------------
+-------------------
 
 Help message consists of 2 parts:
 
@@ -210,7 +244,7 @@ Help message consists of 2 parts:
 Their format is described below; other text is ignored.
 
 Usage pattern format
-----------------------------------------------------------------------
+--------------------
 
 **Usage pattern** is a substring of ``doc`` that starts with
 ``usage:`` (case *insensitive*) and ends with a *visibly* empty line.
@@ -263,7 +297,7 @@ Use the following constructs to specify patterns:
 - **|** (pipe) **mutually exclusive** elements. Group them using **(
   )** if one of the mutually exclusive elements is required:
   ``my_program (--clockwise | --counter-clockwise) TIME``. Group
-  them using **[ ]** if none of the mutually-exclusive elements are
+  them using **[ ]** if none of the mutually exclusive elements are
   required: ``my_program [--left | --right]``.
 - **...** (ellipsis) **one or more** elements. To specify that
   arbitrary number of repeating elements could be accepted, use
@@ -291,7 +325,7 @@ then number of occurrences of the option will be counted. I.e.
 ``args['-v']`` will be ``2`` if program was invoked as ``my_program
 -vv``. Same works for commands.
 
-If your usage patterns allows to match same-named option with argument
+If your usage pattern allows to match same-named option with argument
 or positional argument several times, the matched arguments will be
 collected into a list::
 
@@ -301,9 +335,8 @@ I.e. invoked with ``my_program file1 file2 --path=./here
 --path=./there`` the returned dict will contain ``args['<file>'] ==
 ['file1', 'file2']`` and ``args['--path'] == ['./here', './there']``.
 
-
 Option descriptions format
-----------------------------------------------------------------------
+--------------------------
 
 **Option descriptions** consist of a list of options that you put
 below your usage patterns.
@@ -328,7 +361,7 @@ The rules are as follows:
   argument after space (or equals "``=``" sign) as shown below. Follow
   either <angular-brackets> or UPPER-CASE convention for options'
   arguments.  You can use comma if you want to separate options. In
-  the example below, both lines are valid, however you are recommended
+  the example below, both lines are valid. However you are recommended
   to stick to a single style.::
 
     -o FILE --output=FILE       # without comma, with "=" sign
@@ -352,7 +385,7 @@ The rules are as follows:
 
 - If the option is not repeatable, the value inside ``[default: ...]``
   will be interpreted as string.  If it *is* repeatable, it will be
-  splited into a list on whitespace::
+  split into a list on whitespace::
 
     Usage: my_program [--repeatable=<arg> --repeatable=<arg>]
                          [--another-repeatable=<arg>]...
@@ -368,18 +401,18 @@ The rules are as follows:
     --not-repeatable=<arg>      [default: ./here ./there]
 
 Examples
-----------------------------------------------------------------------
+--------
 
 We have an extensive list of `examples
 <https://github.com/docopt/docopt/tree/master/examples>`_ which cover
 every aspect of functionality of **docopt**.  Try them out, read the
 source if in doubt.
 
-There are also very intersting applications and ideas at that page.
+There are also very interesting applications and ideas at that page.
 Check out the sister project for more information!
 
 Subparsers, multi-level help and *huge* applications (like git)
-----------------------------------------------------------------------
+---------------------------------------------------------------
 
 If you want to split your usage-pattern into several, implement
 multi-level help (with separate help-screen for each subcommand),
@@ -391,7 +424,8 @@ we implemented a subset of git command-line interface as an example:
 <https://github.com/docopt/docopt/tree/master/examples/git>`_
 
 Compiling the example / Running the tests
-----------------------------------------------------------------------
+-----------------------------------------
+
 The original Python module includes some language-agnostic unit tests,
 and these can be run with this port as well.
 
@@ -425,7 +459,7 @@ You can also compile the example shown at the start (included as example.cpp)::
   shoot: false
 
 Development
----------------------------------------------------
+-----------
 
 Comments and suggestions are *very* welcome! If you find issues, please
 file them and help improve our code!
@@ -436,7 +470,7 @@ we might want to first negotiate these changes into the Python code first.
 However, bring it up! Let's hear it!
 
 Changelog
----------------------------------------------------
+---------
 
 **docopt** follows `semantic versioning <http://semver.org>`_.  The
 first release with stable API will be 1.0.0 (soon).
