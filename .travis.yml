@@ -16,7 +16,7 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test', 'george-edison55-precise-backports', 'boost-latest']
-          packages: ["g++-4.8", "cmake-data", "cmake", "libboost-regex1.55-dev"]
+          packages: ["g++-4.8", "cmake-data", "cmake", "libboost-regex-dev"]
 
     - os: linux
       env:
