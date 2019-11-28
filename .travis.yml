@@ -5,18 +5,32 @@ matrix:
   include:
     - os: linux
       env:
-        - COMPILER=g++-5 STDLIB=libc++
+        - COMPILER=g++-7
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'george-edison55-precise-backports']
-          packages: ["g++-5", "cmake-data", "cmake"]
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ["g++-7", "cmake-data", "cmake"]
     - os: linux
       env:
-        - COMPILER=g++-4.8 USE_BOOST_REGEX=ON
+        - COMPILER=g++-8
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'george-edison55-precise-backports', 'boost-latest']
-          packages: ["g++-4.8", "cmake-data", "cmake", "libboost-regex-dev"]
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ["g++-8", "cmake-data", "cmake"]
+    - os: linux
+      env:
+        - COMPILER=g++-9
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ["g++-9", "cmake-data", "cmake"]
+    - os: linux
+      env:
+        - COMPILER=g++-9 USE_BOOST_REGEX=ON
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ["g++-9", "cmake-data", "cmake", "libboost-regex-dev"]
 
     - os: linux
       env:
@@ -28,11 +42,11 @@ matrix:
 
     - os: linux
       env:
-        - COMPILER=clang++-3.7 STDLIB=libc++
+        - COMPILER=clang++-8 STDLIB=libc++
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.7', 'george-edison55-precise-backports']
-          packages: ["clang-3.7", "cmake-data", "cmake"]
+          sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-trusty-8']
+          packages: ["clang-8", "cmake-data", "cmake"]
 
     - os: osx
       osx_image: xcode9.4
@@ -50,19 +64,32 @@ matrix:
       env:
         - COMPILER=clang++ V='Apple LLVM 11.0'
         - COMPILER=clang++ V='Apple LLVM 11.0' WITH_CPP14=true
+    - os: osx
+      osx_image: xcode11.2
+      env:
+        - COMPILER=clang++ V='Apple LLVM 11.0'
+        - COMPILER=clang++ V='Apple LLVM 11.0' WITH_CPP17=true
 
 before_install:
   - CMAKE_CXX_FLAGS+=" -Wall"
-
-  - if [[ "${WITH_CPP14}" == "true" ]]; then CMAKE_OPTIONS+=" -DCMAKE_CXX_STANDARD=14"; fi
+  - |
+    if [[ "${WITH_CPP14}" == "true" ]]; then
+        CMAKE_OPTIONS+=" -DCMAKE_CXX_STANDARD=14"
+    fi
+  - |
+    if [[ "${WITH_CPP17}" == "true" ]]; then
+        CMAKE_OPTIONS+=" -DCMAKE_CXX_STANDARD=17"
+    fi
   - |
     if [[ "${USE_BOOST_REGEX}" == "ON" ]]; then
         CMAKE_OPTIONS+=" -DUSE_BOOST_REGEX=ON"
-        CMAKE_OPTIONS+=" -DBoost_REGEX_LIBRARY_DEBUG=/usr/lib/x86_64-linux-gnu/libboost_regex.so.1.55.0"
-        CMAKE_OPTIONS+=" -DBoost_REGEX_LIBRARY_RELEASE=/usr/lib/x86_64-linux-gnu/libboost_regex.so.1.55.0"
+        CMAKE_OPTIONS+=" -DBoost_REGEX_LIBRARY_DEBUG=/usr/lib/x86_64-linux-gnu/libboost_regex.so"
+        CMAKE_OPTIONS+=" -DBoost_REGEX_LIBRARY_RELEASE=/usr/lib/x86_64-linux-gnu/libboost_regex.so"
     fi
-  - if [[ "${STDLIB}" == "libc++" ]]; then CMAKE_CXX_FLAGS+=" -stdlib=libc++"; fi
-
+  - |
+    if [[ "${STDLIB}" == "libc++" ]]; then
+        CMAKE_CXX_FLAGS+=" -stdlib=libc++"
+    fi
   - ${COMPILER} --version
 
 before_script:
