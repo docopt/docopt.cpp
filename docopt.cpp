@@ -636,7 +636,7 @@ docopt::docopt_parse(std::string const& doc,
 	std::vector<std::shared_ptr<LeafPattern>> collected;
 	bool matched = pattern.fix().match(argv_patterns, collected);
 	if (matched && argv_patterns.empty()) {
-		options ret;
+		docopt::options ret;
 
 		// (a.name, a.value) for a in (pattern.flat() + collected)
 		for (auto* p : pattern.leaves()) {
