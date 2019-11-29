@@ -53,6 +53,9 @@ namespace docopt {
 
 	// Arguments contained '--version' and parsing was aborted early
 	struct DocoptExitVersion : std::runtime_error { DocoptExitVersion() : std::runtime_error("Docopt --version argument encountered") {} };
+
+	/// A map of options set by the user
+	using options = std::map<std::string, value>;
 	
 	/// Parse user options from the given option string.
 	///
@@ -67,7 +70,7 @@ namespace docopt {
 	/// @throws DocoptExitHelp if 'help' is true and the user has passed the '--help' argument
 	/// @throws DocoptExitVersion if 'version' is true and the user has passed the '--version' argument
 	/// @throws DocoptArgumentError if the user's argv did not match the usage patterns
-	std::map<std::string, value> DOCOPT_API docopt_parse(std::string const& doc,
+	options DOCOPT_API docopt_parse(std::string const& doc,
 					    std::vector<std::string> const& argv,
 					    bool help = true,
 					    bool version = true,
@@ -80,7 +83,7 @@ namespace docopt {
 	///  * DocoptExitHelp - print usage string and terminate (with exit code 0)
 	///  * DocoptExitVersion - print version and terminate (with exit code 0)
 	///  * DocoptArgumentError - print error and usage string and terminate (with exit code -1)
-	std::map<std::string, value> DOCOPT_API docopt(std::string const& doc,
+	options DOCOPT_API docopt(std::string const& doc,
 					    std::vector<std::string> const& argv,
 					    bool help = true,
 					    std::string const& version = {},
