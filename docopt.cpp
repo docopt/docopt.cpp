@@ -609,7 +609,7 @@ static std::pair<Required, std::vector<Option>> create_pattern_tree(std::string 
 }
 
 DOCOPT_INLINE
-docopt::options
+docopt::Options
 docopt::docopt_parse(std::string const& doc,
 		     std::vector<std::string> const& argv,
 		     bool help,
@@ -636,7 +636,7 @@ docopt::docopt_parse(std::string const& doc,
 	std::vector<std::shared_ptr<LeafPattern>> collected;
 	bool matched = pattern.fix().match(argv_patterns, collected);
 	if (matched && argv_patterns.empty()) {
-		docopt::options ret;
+		docopt::Options ret;
 
 		// (a.name, a.value) for a in (pattern.flat() + collected)
 		for (auto* p : pattern.leaves()) {
@@ -659,7 +659,7 @@ docopt::docopt_parse(std::string const& doc,
 }
 
 DOCOPT_INLINE
-docopt::options
+docopt::Options
 docopt::docopt(std::string const& doc,
 	       std::vector<std::string> const& argv,
 	       bool help,
