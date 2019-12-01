@@ -29,6 +29,7 @@ set(docopt_HEADERS
 		docopt_private.h
 		docopt_util.h
 		docopt_value.h
+		docopt_api.h
 		)
 
 #============================================================================

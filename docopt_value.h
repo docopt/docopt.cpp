@@ -9,6 +9,8 @@
 #ifndef docopt__value_h_
 #define docopt__value_h_
 
+#include "docopt_api.h"
+
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -105,7 +107,7 @@ namespace docopt {
 	};
 
 	/// Write out the contents to the ostream
-	std::ostream& operator<<(std::ostream&, value const&);
+	DOCOPT_API std::ostream& operator<<(std::ostream&, value const&);
 }
 
 namespace std {
