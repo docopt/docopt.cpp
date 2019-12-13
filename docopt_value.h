@@ -17,6 +17,14 @@
 
 namespace docopt {
 
+  enum class Kind {
+  	Empty,
+  	Bool,
+  	Long,
+  	String,
+  	StringList
+  };
+
 	/// A generic type to hold the various types that can be produced by docopt.
 	///
 	/// This type can be one of: {bool, long, string, vector<string>}, or empty.
@@ -36,15 +44,17 @@ namespace docopt {
 		value(value&&) noexcept;
 		value& operator=(value const&);
 		value& operator=(value&&) noexcept;
+
+    Kind kind() const { return mKind; }
 		
 		// Test if this object has any contents at all
-		explicit operator bool() const { return kind != Kind::Empty; }
+		explicit operator bool() const { return mKind != Kind::Empty; }
 		
 		// Test the type contained by this value object
-		bool isBool()       const { return kind==Kind::Bool; }
-		bool isString()     const { return kind==Kind::String; }
-		bool isLong()       const { return kind==Kind::Long; }
-		bool isStringList() const { return kind==Kind::StringList; }
+		bool isBool()       const { return mKind==Kind::Bool; }
+		bool isString()     const { return mKind==Kind::String; }
+		bool isLong()       const { return mKind==Kind::Long; }
+		bool isStringList() const { return mKind==Kind::StringList; }
 
 		// Throws std::invalid_argument if the type does not match
 		bool asBool() const;
@@ -59,14 +69,6 @@ namespace docopt {
 		friend bool operator!=(value const&, value const&);
 
 	private:
-		enum class Kind {
-			Empty,
-			Bool,
-			Long,
-			String,
-			StringList
-		};
-		
 		union Variant {
 			Variant() {}
 			~Variant() {  /* do nothing; will be destroyed by ~value */ }
@@ -89,19 +91,18 @@ namespace docopt {
 		}
 
 		void throwIfNotKind(Kind expected) const {
-			if (kind == expected)
+			if (mKind == expected)
 				return;
 
 			std::string error = "Illegal cast to ";
 			error += kindAsString(expected);
 			error += "; type is actually ";
-			error += kindAsString(kind);
+			error += kindAsString(mKind);
 			throw std::runtime_error(std::move(error));
 		}
 
-	private:
-		Kind kind = Kind::Empty;
-		Variant variant {};
+		Kind mKind = Kind::Empty;
+		Variant mVariant {};
 	};
 
 	/// Write out the contents to the ostream
@@ -120,51 +121,51 @@ namespace std {
 namespace docopt {
 	inline
 	value::value(bool v)
-	: kind(Kind::Bool)
+	: mKind(Kind::Bool)
 	{
-		variant.boolValue = v;
+		mVariant.boolValue = v;
 	}
 
 	inline
 	value::value(long v)
-	: kind(Kind::Long)
+	: mKind(Kind::Long)
 	{
-		variant.longValue = v;
+		mVariant.longValue = v;
 	}
 
 	inline
 	value::value(std::string v)
-	: kind(Kind::String)
+	: mKind(Kind::String)
 	{
-		new (&variant.strValue) std::string(std::move(v));
+		new (&mVariant.strValue) std::string(std::move(v));
 	}
 
 	inline
 	value::value(std::vector<std::string> v)
-	: kind(Kind::StringList)
+	: mKind(Kind::StringList)
 	{
-		new (&variant.strList) std::vector<std::string>(std::move(v));
+		new (&mVariant.strList) std::vector<std::string>(std::move(v));
 	}
 
 	inline
 	value::value(value const& other)
-	: kind(other.kind)
+	: mKind(other.mKind)
 	{
-		switch (kind) {
+		switch (mKind) {
 			case Kind::String:
-				new (&variant.strValue) std::string(other.variant.strValue);
+				new (&mVariant.strValue) std::string(other.mVariant.strValue);
 				break;
 
 			case Kind::StringList:
-				new (&variant.strList) std::vector<std::string>(other.variant.strList);
+				new (&mVariant.strList) std::vector<std::string>(other.mVariant.strList);
 				break;
 
 			case Kind::Bool:
-				variant.boolValue = other.variant.boolValue;
+				mVariant.boolValue = other.mVariant.boolValue;
 				break;
 
 			case Kind::Long:
-				variant.longValue = other.variant.longValue;
+				mVariant.longValue = other.mVariant.longValue;
 				break;
 
 			case Kind::Empty:
@@ -175,23 +176,23 @@ namespace docopt {
 
 	inline
 	value::value(value&& other) noexcept
-	: kind(other.kind)
+	: mKind(other.mKind)
 	{
-		switch (kind) {
+		switch (mKind) {
 			case Kind::String:
-				new (&variant.strValue) std::string(std::move(other.variant.strValue));
+				new (&mVariant.strValue) std::string(std::move(other.mVariant.strValue));
 				break;
 
 			case Kind::StringList:
-				new (&variant.strList) std::vector<std::string>(std::move(other.variant.strList));
+				new (&mVariant.strList) std::vector<std::string>(std::move(other.mVariant.strList));
 				break;
 
 			case Kind::Bool:
-				variant.boolValue = other.variant.boolValue;
+				mVariant.boolValue = other.mVariant.boolValue;
 				break;
 
 			case Kind::Long:
-				variant.longValue = other.variant.longValue;
+				mVariant.longValue = other.mVariant.longValue;
 				break;
 
 			case Kind::Empty:
@@ -203,13 +204,13 @@ namespace docopt {
 	inline
 	value::~value()
 	{
-		switch (kind) {
+		switch (mKind) {
 			case Kind::String:
-				variant.strValue.~basic_string();
+				mVariant.strValue.~basic_string();
 				break;
 
 			case Kind::StringList:
-				variant.strList.~vector();
+				mVariant.strList.~vector();
 				break;
 
 			case Kind::Empty:
@@ -243,23 +244,23 @@ namespace docopt {
 	inline
 	size_t value::hash() const noexcept
 	{
-		switch (kind) {
+		switch (mKind) {
 			case Kind::String:
-				return std::hash<std::string>()(variant.strValue);
+				return std::hash<std::string>()(mVariant.strValue);
 
 			case Kind::StringList: {
-				size_t seed = std::hash<size_t>()(variant.strList.size());
-				for(auto const& str : variant.strList) {
+				size_t seed = std::hash<size_t>()(mVariant.strList.size());
+				for(auto const& str : mVariant.strList) {
 					hash_combine(seed, str);
 				}
 				return seed;
 			}
 
 			case Kind::Bool:
-				return std::hash<bool>()(variant.boolValue);
+				return std::hash<bool>()(mVariant.boolValue);
 
 			case Kind::Long:
-				return std::hash<long>()(variant.longValue);
+				return std::hash<long>()(mVariant.longValue);
 
 			case Kind::Empty:
 			default:
@@ -271,15 +272,15 @@ namespace docopt {
 	bool value::asBool() const
 	{
 		throwIfNotKind(Kind::Bool);
-		return variant.boolValue;
+		return mVariant.boolValue;
 	}
 
 	inline
 	long value::asLong() const
 	{
 		// Attempt to convert a string to a long
-		if (kind == Kind::String) {
-			const std::string& str = variant.strValue;
+		if (mKind == Kind::String) {
+			const std::string& str = mVariant.strValue;
 			std::size_t pos;
 			const long ret = stol(str, &pos); // Throws if it can't convert
 			if (pos != str.length()) {
@@ -289,43 +290,43 @@ namespace docopt {
 			return ret;
 		}
 		throwIfNotKind(Kind::Long);
-		return variant.longValue;
+		return mVariant.longValue;
 	}
 
 	inline
 	std::string const& value::asString() const
 	{
 		throwIfNotKind(Kind::String);
-		return variant.strValue;
+		return mVariant.strValue;
 	}
 
 	inline
 	std::vector<std::string> const& value::asStringList() const
 	{
 		throwIfNotKind(Kind::StringList);
-		return variant.strList;
+		return mVariant.strList;
 	}
 
 	inline
 	bool operator==(value const& v1, value const& v2)
 	{
-		if (v1.kind != v2.kind)
+		if (v1.mKind != v2.mKind)
 			return false;
 		
-		switch (v1.kind) {
-			case value::Kind::String:
-				return v1.variant.strValue==v2.variant.strValue;
+		switch (v1.mKind) {
+			case Kind::String:
+				return v1.mVariant.strValue==v2.mVariant.strValue;
 
-			case value::Kind::StringList:
-				return v1.variant.strList==v2.variant.strList;
+			case Kind::StringList:
+				return v1.mVariant.strList==v2.mVariant.strList;
 
-			case value::Kind::Bool:
-				return v1.variant.boolValue==v2.variant.boolValue;
+			case Kind::Bool:
+				return v1.mVariant.boolValue==v2.mVariant.boolValue;
 
-			case value::Kind::Long:
-				return v1.variant.longValue==v2.variant.longValue;
+			case Kind::Long:
+				return v1.mVariant.longValue==v2.mVariant.longValue;
 
-			case value::Kind::Empty:
+			case Kind::Empty:
 			default:
 				return true;
 		}
