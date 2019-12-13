@@ -17,13 +17,13 @@
 
 namespace docopt {
 
-  enum class Kind {
-  	Empty,
-  	Bool,
-  	Long,
-  	String,
-  	StringList
-  };
+	enum class Kind {
+		Empty,
+		Bool,
+		Long,
+		String,
+		StringList
+	};
 
 	/// A generic type to hold the various types that can be produced by docopt.
 	///
@@ -45,7 +45,7 @@ namespace docopt {
 		value& operator=(value const&);
 		value& operator=(value&&) noexcept;
 
-    Kind kind() const { return mKind; }
+		Kind kind() const { return mKind; }
 		
 		// Test if this object has any contents at all
 		explicit operator bool() const { return mKind != Kind::Empty; }
