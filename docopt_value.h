@@ -64,7 +64,6 @@ namespace docopt {
 
 		size_t hash() const noexcept;
 		
-		// equality is based on hash-equality
 		friend bool operator==(value const&, value const&);
 		friend bool operator!=(value const&, value const&);
 
