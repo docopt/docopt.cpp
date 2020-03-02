@@ -17,6 +17,7 @@
 #include <unordered_map>
 #include <map>
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <cassert>
 #include <cstddef>
@@ -305,9 +306,10 @@ static PatternList parse_short(Tokens& tokens, std::vector<Option>& options)
 		}
 
 		if (similar.size() > 1) {
-			std::string error = shortOpt + " is specified ambiguously "
-			+ std::to_string(similar.size()) + " times";
-			throw Tokens::OptionError(std::move(error));
+			std::stringstream error;
+			error << shortOpt << " is specified ambiguously "
+				  << similar.size() << " times";
+			throw Tokens::OptionError(std::move(error.str()));
 		} else if (similar.empty()) {
 			options.emplace_back(shortOpt, "", 0);
 
