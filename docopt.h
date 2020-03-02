@@ -14,6 +14,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <stdexcept>
 
 #ifdef DOCOPT_HEADER_ONLY
     #define DOCOPT_INLINE inline
