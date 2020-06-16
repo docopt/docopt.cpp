@@ -523,7 +523,7 @@ static PatternList parse_argv(Tokens tokens, std::vector<Option>& options, bool 
 	return ret;
 }
 
-std::vector<Option> parse_defaults(std::string const& doc) {
+static std::vector<Option> parse_defaults(std::string const& doc) {
 	// This pattern is a delimiter by which we split the options.
 	// The delimiter is a new line followed by a whitespace(s) followed by one or two hyphens.
 	static std::regex const re_delimiter{
