@@ -532,7 +532,7 @@ namespace docopt {
 			options_end = option_description.begin() + static_cast<std::ptrdiff_t>(double_space);
 		}
 
-		static const std::regex pattern {"(-{1,2})?(.*?)([,= ]|$)"};
+		static const std::regex pattern {"(-{1,2})?(.*?)([,= ]|$|\n)"};
 		for(std::sregex_iterator i {option_description.begin(), options_end, pattern, std::regex_constants::match_not_null},
 			   e{};
 			i != e;
