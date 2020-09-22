@@ -51,10 +51,10 @@ namespace docopt {
 		explicit operator bool() const { return kind_ != Kind::Empty; }
 		
 		// Test the type contained by this value object
-		bool isBool()       const { return kind_==Kind::Bool; }
-		bool isString()     const { return kind_==Kind::String; }
-		bool isLong()       const { return kind_==Kind::Long; }
-		bool isStringList() const { return kind_==Kind::StringList; }
+		bool isBool()       const noexcept { return kind_==Kind::Bool; }
+		bool isString()     const noexcept { return kind_==Kind::String; }
+		bool isLong()       const noexcept { return kind_==Kind::Long; }
+		bool isStringList() const noexcept { return kind_==Kind::StringList; }
 
 		// Throws std::invalid_argument if the type does not match
 		bool asBool() const;
