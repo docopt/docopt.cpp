@@ -1,0 +1,10 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+if(@USE_BOOST_REGEX@)
+  find_dependency(Boost 1.53 COMPONENTS regex)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/docopt-targets.cmake")
+
+check_required_components(docopt)
