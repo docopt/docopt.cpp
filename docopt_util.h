@@ -9,15 +9,11 @@
 #ifndef docopt_docopt_util_h
 #define docopt_docopt_util_h
 
-#if DOCTOPT_USE_BOOST_REGEX
-	#include <boost/regex.hpp>
-namespace std {
-	using boost::regex;
-	using boost::sregex_token_iterator;
-}
-#else
-	#include <regex>
-#endif
+#include <algorithm>
+#include <string>
+#include <string_view>
+#include <tuple>
+#include <vector>
 
 #if 0
 	#pragma mark -
@@ -25,7 +21,7 @@ namespace std {
 #endif
 
 namespace {
-	bool starts_with(std::string const& str, std::string const& prefix) {
+	bool starts_with(std::string_view str, std::string_view prefix) {
 		if (str.length() < prefix.length()) return false;
 		return std::equal(prefix.begin(), prefix.end(), str.begin());
 	}
@@ -41,7 +37,14 @@ namespace {
 		return std::move(str);
 	}
 
-	std::vector<std::string> split(std::string const& str, size_t pos = 0) {
+	std::string trim(std::string_view str, std::string_view whitespace = " \t\n") {
+		auto const strEnd = str.find_last_not_of(whitespace);
+		if (strEnd == std::string::npos) return {};
+		auto const strBegin = str.find_first_not_of(whitespace);
+
+		return {str.begin() + strBegin, str.begin() + strEnd + 1};
+	}
+	std::vector<std::string> split(std::string_view str, size_t pos = 0) {
 		const char* const anySpace = " \t\r\n\v\f";
 
 		std::vector<std::string> ret;
@@ -88,14 +91,6 @@ namespace {
 		return ret;
 	}
 
-	std::vector<std::string> regex_split(std::string const& text, std::regex const& re) {
-		std::vector<std::string> ret;
-		for (auto it = std::sregex_token_iterator(text.begin(), text.end(), re, -1); it != std::sregex_token_iterator();
-			 ++it) {
-			ret.emplace_back(*it);
-		}
-		return ret;
-	}
 }
 
 namespace docopt {

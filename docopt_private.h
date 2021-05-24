@@ -9,26 +9,11 @@
 #ifndef docopt_docopt_private_h
 #define docopt_docopt_private_h
 
+#include "ctre.hpp"
 #include <assert.h>
 #include <memory>
 #include <unordered_set>
 #include <vector>
-
-// Workaround GCC 4.8 not having std::regex
-#if DOCTOPT_USE_BOOST_REGEX
-	#include <boost/regex.hpp>
-namespace std {
-	using boost::regex;
-	using boost::regex_search;
-	using boost::smatch;
-	using boost::sregex_iterator;
-	namespace regex_constants {
-		using boost::regex_constants::match_not_null;
-	}
-}
-#else
-	#include <regex>
-#endif
 
 #include "docopt_util.h"
 #include "docopt_value.h"
@@ -227,7 +212,7 @@ namespace docopt {
 
 	class Option final : public LeafPattern {
 	  public:
-		static Option parse(std::string const& option_description);
+		static Option parse(std::string_view option_description);
 
 		Option(std::string shortOption, std::string longOption, int argcount = 0, value v = value{false})
 			: LeafPattern(longOption.empty() ? shortOption : longOption, std::move(v))
@@ -495,7 +480,7 @@ namespace docopt {
 		return ret;
 	}
 
-	inline Option Option::parse(std::string const& option_description) {
+	inline Option Option::parse(std::string_view option_description) {
 		std::string shortOption, longOption;
 		int argcount = 0;
 		value val{false};
@@ -506,41 +491,24 @@ namespace docopt {
 			options_end = option_description.begin() + static_cast<std::ptrdiff_t>(double_space);
 		}
 
-		static const std::regex pattern{"(-{1,2})?(.*?)([,= ]|$)"};
-		for (std::sregex_iterator
-				 i{option_description.begin(), options_end, pattern, std::regex_constants::match_not_null},
-			 e{};
-			 i != e;
-			 ++i) {
-			std::smatch const& match = *i;
-			if (match[1].matched) {	 // [1] is optional.
-				if (match[1].length() == 1) {
-					shortOption = "-" + match[2].str();
+		static constexpr auto pattern = ctll::fixed_string{"(-{1,2})?(.*?)([,= ]|$)"};
+		for (auto match : ctre::range<pattern>(option_description.begin(), options_end)) {
+			auto [m, hyp, cont, _] = match;
+			if (hyp) {	// [1] is optional.
+				if (hyp.size() == 1) {
+					shortOption = "-" + cont.to_string();
 				} else {
-					longOption = "--" + match[2].str();
+					longOption = "--" + cont.to_string();
 				}
-			} else if (match[2].length() > 0) {	 // [2] always matches.
-				std::string m = match[2];
+			} else if (cont.size() > 0) {  // [2] always matches.
 				argcount = 1;
-			} else {
-				// delimeter
-			}
-
-			if (match[3].length() == 0) {  // [3] always matches.
-				// Hit end of string. For some reason 'match_not_null' will let us match empty
-				// at the end, and then we'll spin in an infinite loop. So, if we hit an empty
-				// match, we know we must be at the end.
-				break;
 			}
 		}
-
 		if (argcount) {
-			std::smatch match;
-			if (std::regex_search(options_end,
-								  option_description.end(),
-								  match,
-								  std::regex{"\\[default: (.*)\\]", std::regex::icase})) {
-				val = match[1].str();
+			// to support case insensitive search fo the pattern [default: .*]
+			constexpr static auto def_val = ctll::fixed_string{R"(\[[dD][eE][fF][aA][uU][lL][tT]: (.*)\])"};
+			if (auto [m, def_str] = ctre::search<def_val>(options_end, option_description.end()); m) {
+				val = def_str.to_string();
 			}
 		}
 

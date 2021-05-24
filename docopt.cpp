@@ -67,44 +67,33 @@ class Tokens {
 	explicit operator bool() const { return fIndex < fTokens.size(); }
 
 	static Tokens from_pattern(std::string const& source) {
-		static const std::regex re_separators{
-			"(?:\\s*)"	// any spaces (non-matching subgroup)
-			"("
-			"[\\[\\]\\(\\)\\|]"	 // one character of brackets or parens or pipe character
-			"|"
-			"\\.\\.\\."	 // elipsis
-			")"};
+		constexpr static auto re_separator =
+			ctll::fixed_string{R"((?:\s*))"	 // any spaces (non-matching subgroup)
+							   "("
+							   R"([\[\]\(\)\|])"  // one character of brackets or parens or pipe character
+							   "|"
+							   R"(\.\.\.)"	// ellipsis
+							   ")"};
 
-		static const std::regex re_strings{"(?:\\s*)"  // any spaces (non-matching subgroup)
-										   "("
-										   "\\S*<.*?>"	// strings, but make sure to keep "< >" strings together
-										   "|"
-										   "[^<>\\s]+"	// string without <>
-										   ")"};
+		constexpr static auto re_strings =
+			ctll::fixed_string{R"(\S*<.*?>)"  // strings, but make sure to keep "< >" strings together
+							   "|"
+							   R"([^<>\s]+)"};	// string without <>
 
 		// We do two stages of regex matching. The '[]()' and '...' are strong delimeters
 		// and need to be split out anywhere they occur (even at the end of a token). We
 		// first split on those, and then parse the stuff between them to find the string
-		// tokens. This is a little harder than the python version, since they have regex.split
-		// and we dont have anything like that.
+		// tokens. This is a little harder than the python version
 
 		std::vector<std::string> tokens;
-		std::for_each(std::sregex_iterator{source.begin(), source.end(), re_separators},
-					  std::sregex_iterator{},
-					  [&](std::smatch const& match) {
-						  // handle anything before the separator (this is the "stuff" between the delimeters)
-						  if (match.prefix().matched) {
-							  std::for_each(
-								  std::sregex_iterator{match.prefix().first, match.prefix().second, re_strings},
-								  std::sregex_iterator{},
-								  [&](std::smatch const& m) { tokens.push_back(m[1].str()); });
-						  }
-
-						  // handle the delimter token itself
-						  if (match[1].matched) {
-							  tokens.push_back(match[1].str());
-						  }
-					  });
+		for (auto [first_stage, sep] : ctre::split<re_separator>(source)) {
+			for (auto sub_match : ctre::range<re_strings>(first_stage)) {
+				tokens.emplace_back(sub_match.to_string());
+			}
+			if (sep) {
+				tokens.emplace_back(sep.to_string());
+			}
+		}
 
 		return Tokens(tokens, false);
 	}
@@ -148,26 +137,34 @@ std::vector<T*> flat_filter(Pattern& pattern) {
 	return ret;
 }
 
-static std::vector<std::string> parse_section(std::string const& name, std::string const& source) {
-	// ECMAScript regex only has "?=" for a non-matching lookahead. In order to make sure we always have
-	// a newline to anchor our matching, we have to avoid matching the final newline of each grouping.
-	// Therefore, our regex is adjusted from the docopt Python one to use ?= to match the newlines before
-	// the following lines, rather than after.
-	std::regex const re_section_pattern{
-		"(?:^|\\n)"	 // anchored at a linebreak (or start of string)
-		"("
-		"[^\\n]*" +
-			name +
-			"[^\\n]*(?=\\n?)"			  // a line that contains the name
-			"(?:\\n[ \\t].*?(?=\\n|$))*"  // followed by any number of lines that are indented
-			")",
-		std::regex::icase};
-
+static auto parse_usage(std::string_view source) -> std::vector<std::string> {
+	constexpr static auto re_section_pattern =
+		ctll::fixed_string{R"((?:^|\n))"  // anchored at a line-break (or start of string)
+						   "("
+						   R"([^\n]*)"
+						   "[uU][sS][aA][gG][eE]:"
+						   R"([^\n]*(?=\n?))"			 // a line that contains "usage:" (case insensitive)
+						   R"((?:\n[ \t].*?(?=\n|$))*)"	 // followed by any number of lines that are indented
+						   ")"};
 	std::vector<std::string> ret;
-	std::for_each(std::sregex_iterator(source.begin(), source.end(), re_section_pattern),
-				  std::sregex_iterator(),
-				  [&](std::smatch const& match) { ret.push_back(trim(match[1].str())); });
-
+	for (auto match : ctre::range<re_section_pattern>(source)) {
+		ret.emplace_back(trim(match.get<1>().to_view()));
+	}
+	return ret;
+}
+static auto parse_options(std::string_view source) -> std::vector<std::string> {
+	constexpr static auto re_section_pattern =
+		ctll::fixed_string{R"((?:^|\n))"  // anchored at a line-break (or start of string)
+						   "("
+						   R"([^\n]*)"
+						   "[oO][pP][tT][iI][oO][nN][sS]:"
+						   R"([^\n]*(?=\n?))"			 // a line that contains "options:" (case insensitive)
+						   R"((?:\n[ \t].*?(?=\n|$))*)"	 // followed by any number of lines that are indented
+						   ")"};
+	std::vector<std::string> ret;
+	for (auto match : ctre::range<re_section_pattern>(source)) {
+		ret.emplace_back(trim(match.get<1>().to_view()));
+	}
 	return ret;
 }
 
@@ -487,16 +484,16 @@ static PatternList parse_argv(Tokens tokens, std::vector<Option>& options, bool 
 static std::vector<Option> parse_defaults(std::string const& doc) {
 	// This pattern is a delimiter by which we split the options.
 	// The delimiter is a new line followed by a whitespace(s) followed by one or two hyphens.
-	static std::regex const re_delimiter{
-		"(?:^|\\n)[ \\t]*"	// a new line with leading whitespace
-		"(?=-{1,2})"		// [split happens here] (positive lookahead) ... and followed by one or two hyphes
+	static constexpr auto re_delimiter = ctll::fixed_string{
+		R"((?:^|\n)[ \t]*)"	 // a new line with leading whitespace
+		"(?=-{1,2})"		 // [split happens here] (positive lookahead) ... and followed by one or two hyphes
 	};
 
 	std::vector<Option> defaults;
-	for (auto s : parse_section("options:", doc)) {
+	for (auto s : parse_options(doc)) {
 		s.erase(s.begin(), s.begin() + static_cast<std::ptrdiff_t>(s.find(':')) + 1);  // get rid of "options:"
 
-		for (const auto& opt : regex_split(s, re_delimiter)) {
+		for (auto opt : ctre::split<re_delimiter>(s)) {
 			if (starts_with(opt, "-")) {
 				defaults.emplace_back(Option::parse(opt));
 			}
@@ -528,7 +525,7 @@ static void extras(bool help, bool version, PatternList const& options) {
 
 // Parse the doc string and generate the Pattern tree
 static std::pair<Required, std::vector<Option>> create_pattern_tree(std::string const& doc) {
-	auto usage_sections = parse_section("usage:", doc);
+	auto usage_sections = parse_usage(doc);
 	if (usage_sections.empty()) {
 		throw DocoptLanguageError("'usage:' (case-insensitive) not found.");
 	}

@@ -28,5 +28,8 @@ Makefile
 cmake_install.cmake
 docopt-config-version.cmake
 
+# build directory
+build/
+
 # Files configured by CMake
 run_tests

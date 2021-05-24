@@ -8,7 +8,6 @@ include(GNUInstallDirs)
 #============================================================================
 option(WITH_TESTS "Build tests." OFF)
 option(WITH_EXAMPLE "Build example." OFF)
-option(USE_BOOST_REGEX "Replace std::regex with Boost.Regex" OFF)
 
 #============================================================================
 # Internal compiler options
@@ -16,8 +15,8 @@ option(USE_BOOST_REGEX "Replace std::regex with Boost.Regex" OFF)
 # C++ standard
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-if(NOT CMAKE_CXX_STANDARD OR CMAKE_CXX_STANDARD LESS 11)
-	set(CMAKE_CXX_STANDARD 11)
+if(NOT CMAKE_CXX_STANDARD OR CMAKE_CXX_STANDARD LESS 17)
+	set(CMAKE_CXX_STANDARD 17)
 endif()
 
 #============================================================================
@@ -31,6 +30,7 @@ set(docopt_HEADERS
 		docopt_value.h
 		)
 
+add_subdirectory(compile-time-regular-expressions EXCLUDE_FROM_ALL)
 #============================================================================
 # Compile targets
 #============================================================================
@@ -43,11 +43,14 @@ if(MSVC OR XCODE)
     # See https://cmake.org/cmake/help/v3.0/command/add_library.html?highlight=add_library
     add_library(docopt SHARED ${docopt_SOURCES} ${docopt_HEADERS})
     add_library(docopt_s STATIC ${docopt_SOURCES} ${docopt_HEADERS})
+    target_link_libraries(docopt PRIVATE ctre::ctre)
+    target_link_libraries(docopt_s PRIVATE ctre::ctre)
 else()
     # If not using MSVC or Xcode, we will create an intermediate object target
     # to avoid compiling the source code twice.
     add_library(docopt_o OBJECT ${docopt_SOURCES} ${docopt_HEADERS})
     set_target_properties(docopt_o PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+    target_link_libraries(docopt_o PRIVATE ctre::ctre)
 
     add_library(docopt SHARED $<TARGET_OBJECTS:docopt_o>)
 	set_target_properties(docopt PROPERTIES
@@ -72,19 +75,6 @@ endif()
 if(NOT MSVC)
 	set_target_properties(docopt PROPERTIES OUTPUT_NAME docopt)
 	set_target_properties(docopt_s PROPERTIES OUTPUT_NAME docopt)
-endif()
-
-if(USE_BOOST_REGEX)
-	add_definitions("-DDOCTOPT_USE_BOOST_REGEX")
-	# This is needed on Linux, where linking a static library into docopt.so
-	# fails because boost static libs are not compiled with -fPIC
-	set(Boost_USE_STATIC_LIBS OFF)
-    find_package(Boost 1.53 REQUIRED COMPONENTS regex)
-    include_directories(${Boost_INCLUDE_DIRS})
-    target_link_libraries(docopt ${Boost_LIBRARIES})
-	if(WITH_STATIC)
-		target_link_libraries(docopt_s ${Boost_LIBRARIES})
-	endif()
 endif()
 
 #============================================================================
