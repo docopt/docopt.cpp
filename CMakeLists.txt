@@ -1,13 +1,22 @@
-cmake_minimum_required(VERSION 3.1)
-project(docopt.cpp VERSION 0.6.2)
+cmake_minimum_required(VERSION 3.13...3.21)
+
+project(
+    docopt
+    VERSION 0.6.3
+    LANGUAGES CXX
+)
 
 include(GNUInstallDirs)
+
+if(PROJECT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(DOCOPT_MASTER_PROJECT YES)
+endif()
 
 #============================================================================
 # Settable options
 #============================================================================
-option(WITH_TESTS "Build tests." OFF)
-option(WITH_EXAMPLE "Build example." OFF)
+option(WITH_TESTS "Build tests." ${DOCOPT_MASTER_PROJECT})
+option(WITH_EXAMPLE "Build example." ${DOCOPT_MASTER_PROJECT})
 option(USE_BOOST_REGEX "Replace std::regex with Boost.Regex" OFF)
 
 #============================================================================
@@ -16,73 +25,76 @@ option(USE_BOOST_REGEX "Replace std::regex with Boost.Regex" OFF)
 # C++ standard
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-if(NOT CMAKE_CXX_STANDARD OR CMAKE_CXX_STANDARD LESS 11)
-	set(CMAKE_CXX_STANDARD 11)
+if(NOT CMAKE_CXX_STANDARD OR CMAKE_CXX_STANDARD LESS 17)
+    set(CMAKE_CXX_STANDARD 17)
 endif()
 
 #============================================================================
 # Sources & headers
 #============================================================================
 set(docopt_SOURCES docopt.cpp)
-set(docopt_HEADERS
-		docopt.h
-		docopt_private.h
-		docopt_util.h
-		docopt_value.h
-		)
+set(docopt_HEADERS docopt.h docopt_private.h docopt_util.h docopt_value.h)
 
 #============================================================================
 # Compile targets
 #============================================================================
 add_library(docopt ${docopt_SOURCES} ${docopt_HEADERS})
-set_target_properties(docopt PROPERTIES
-  VERSION ${PROJECT_VERSION}
-  SOVERSION ${PROJECT_VERSION_MAJOR}
+set_target_properties(
+    docopt PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
-target_include_directories(docopt PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}> $<INSTALL_INTERFACE:include/docopt>)
+target_include_directories(
+    docopt PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+                  $<INSTALL_INTERFACE:include/docopt>
+)
+include(cmake/WarningsAsErrors.cmake)
+
+add_library(docopt::docopt ALIAS docopt)
 
 if(MSVC AND BUILD_SHARED_LIBS)
     # DOCOPT_DLL: Must be specified when building *and* when using the DLL.
     #             That's what the "PUBLIC" means.
     # DOCOPT_EXPORTS: Must use __declspec(dllexport) when building the DLL.
     #                 "PRIVATE" means it's only defined when building the DLL.
-    target_compile_definitions(docopt PUBLIC  DOCOPT_DLL
-                                      PRIVATE DOCOPT_EXPORTS)
+    target_compile_definitions(
+        docopt
+        PUBLIC DOCOPT_DLL
+        PRIVATE DOCOPT_EXPORTS
+    )
 endif()
 
 if(USE_BOOST_REGEX)
-	add_definitions("-DDOCTOPT_USE_BOOST_REGEX")
-	# This is needed on Linux, where linking a static library into docopt.so
-	# fails because boost static libs are not compiled with -fPIC
-	set(Boost_USE_STATIC_LIBS OFF)
-    find_package(Boost 1.53 REQUIRED COMPONENTS regex)
-    include_directories(${Boost_INCLUDE_DIRS})
-    target_link_libraries(docopt ${Boost_LIBRARIES})
+    # This is needed on Linux, where linking a static library into docopt.so
+    # fails because boost static libs are not compiled with -fPIC
+    set(Boost_USE_STATIC_LIBS OFF)
+    find_package(Boost 1.71 CONFIG REQUIRED COMPONENTS regex)
+    target_link_libraries(docopt PUBLIC Boost::regex)
+    target_compile_definitions(docopt PUBLIC DOCTOPT_USE_BOOST_REGEX)
 endif()
 
 #============================================================================
 # Examples
 #============================================================================
 if(WITH_EXAMPLE)
-	add_executable(docopt_example examples/naval_fate.cpp)
-	target_link_libraries(docopt_example docopt)
+    add_executable(docopt_example examples/naval_fate.cpp)
+    target_link_libraries(docopt_example docopt::docopt)
 endif()
 
 #============================================================================
 # Tests
 #============================================================================
 if(WITH_TESTS)
-	set(TESTPROG "${CMAKE_CURRENT_BINARY_DIR}/run_testcase")
-	set(TESTCASES "${PROJECT_SOURCE_DIR}/testcases.docopt")
-	add_executable(run_testcase run_testcase.cpp)
-	target_link_libraries(run_testcase docopt)
-	configure_file(
-			"${PROJECT_SOURCE_DIR}/run_tests.py"
-			"${CMAKE_CURRENT_BINARY_DIR}/run_tests"
-			ESCAPE_QUOTES
-	)
-	add_test("Testcases docopt" ${TESTPROG})
+    enable_testing()
+
+    set(TESTPROG "${CMAKE_CURRENT_BINARY_DIR}/run_testcase")
+    set(TESTCASES "${PROJECT_SOURCE_DIR}/testcases.docopt")
+    add_executable(run_testcase run_testcase.cpp)
+    target_link_libraries(run_testcase docopt::docopt)
+    configure_file(
+        "${PROJECT_SOURCE_DIR}/run_tests.py"
+        "${CMAKE_CURRENT_BINARY_DIR}/run_tests" ESCAPE_QUOTES
+    )
+    add_test(NAME "Testcases docopt" COMMAND ${TESTPROG})
 endif()
 
 #============================================================================
@@ -91,22 +103,39 @@ endif()
 set(export_name "docopt-targets")
 
 # Runtime package
-install(TARGETS docopt EXPORT ${export_name}
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(
+    TARGETS docopt
+    EXPORT ${export_name}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
 
-# Development package
 install(FILES ${docopt_HEADERS} DESTINATION include/docopt)
 
 # CMake Package
 include(CMakePackageConfigHelpers)
-write_basic_package_version_file("${PROJECT_BINARY_DIR}/docopt-config-version.cmake" COMPATIBILITY SameMajorVersion)
-install(FILES docopt-config.cmake ${PROJECT_BINARY_DIR}/docopt-config-version.cmake DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
-install(EXPORT ${export_name} DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
+write_basic_package_version_file(
+    "${PROJECT_BINARY_DIR}/docopt-config-version.cmake"
+    COMPATIBILITY SameMajorVersion
+)
+install(FILES docopt-config.cmake
+              ${PROJECT_BINARY_DIR}/docopt-config-version.cmake
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt"
+)
+install(
+    EXPORT ${export_name}
+    NAMESPACE docopt::
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt"
+)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docopt.pc.in ${CMAKE_CURRENT_BINARY_DIR}/docopt.pc @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/docopt.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/docopt.pc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/docopt.pc @ONLY
+)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/docopt.pc
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+)
 
 #============================================================================
 # CPack
