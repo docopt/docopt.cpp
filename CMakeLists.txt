@@ -49,6 +49,8 @@ target_include_directories(
 )
 include(cmake/WarningsAsErrors.cmake)
 
+include(cmake/WarningsAsErrors.cmake)
+
 add_library(docopt::docopt ALIAS docopt)
 
 if(MSVC AND BUILD_SHARED_LIBS)
