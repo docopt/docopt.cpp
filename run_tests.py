@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 import re
 import sys
@@ -56,17 +56,17 @@ for _, doc, cases in parse_test(tests):
 
 		failures += 1
 
-		print "="*40
-		print doc
-		print ':'*20
-		print prog, argv
-		print '-'*20
+		print("="*40)
+		print(doc)
+		print(':'*20)
+		print(prog, argv)
+		print('-'*20)
 		if out:
-			print out
-		print error
+			print(out)
+		print(error)
 
 if failures:
-	print "%d failures" % failures
+	print("%d failures" % failures)
 	sys.exit(1)
 else:
-	print "PASS (%d)" % passes
+	print("PASS (%d)" % passes)
