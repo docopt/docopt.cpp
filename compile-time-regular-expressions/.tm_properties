@@ -1,0 +1,3 @@
+exclude = "{$exclude,**/*.dSYM,**/*.d,**/*.o,test,*.tmp}"
+include = "{$include,.gitignore,.travis*,.conan}"
+excludeInFolderSearch = "{$excludeInFolderSearch,./ctre.hpp}" 
