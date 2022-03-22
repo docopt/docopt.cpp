@@ -617,7 +617,7 @@ docopt::docopt_parse(std::string const& doc,
 		     bool options_first)
 {
 	Required pattern;
-	std::vector<Option> options;
+	std::vector<Option> options{};
 	try {
 		std::tie(pattern, options) = create_pattern_tree(doc);
 	} catch (Tokens::OptionError const& error) {
