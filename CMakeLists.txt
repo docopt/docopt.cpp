@@ -47,7 +47,6 @@ target_include_directories(
     docopt PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
                   $<INSTALL_INTERFACE:include/docopt>
 )
-include(cmake/WarningsAsErrors.cmake)
 
 include(cmake/WarningsAsErrors.cmake)
 
@@ -88,6 +87,7 @@ endif()
 if(WITH_TESTS)
     enable_testing()
 
+    find_program(PYTHON python REQUIRED)
     set(TESTPROG "${CMAKE_CURRENT_BINARY_DIR}/run_testcase")
     set(TESTCASES "${PROJECT_SOURCE_DIR}/testcases.docopt")
     add_executable(run_testcase run_testcase.cpp)
@@ -96,7 +96,7 @@ if(WITH_TESTS)
         "${PROJECT_SOURCE_DIR}/run_tests.py"
         "${CMAKE_CURRENT_BINARY_DIR}/run_tests" ESCAPE_QUOTES
     )
-    add_test(NAME "Testcases docopt" COMMAND ${TESTPROG})
+    add_test(NAME "Testcases docopt" COMMAND ${PYTHON} run_tests)
 endif()
 
 #============================================================================
