@@ -83,7 +83,9 @@ if(WITH_TESTS)
 			"${CMAKE_CURRENT_BINARY_DIR}/run_tests"
 			ESCAPE_QUOTES
 	)
-	add_test(NAME Testcases COMMAND ${TESTPROG})
+	add_test(NAME Testcases_docopt 
+	COMMAND python run_tests.py 
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 endif()
 
 #============================================================================
