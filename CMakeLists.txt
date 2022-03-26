@@ -83,7 +83,7 @@ if(WITH_TESTS)
 			"${CMAKE_CURRENT_BINARY_DIR}/run_tests"
 			ESCAPE_QUOTES
 	)
-	add_test(NAME "Testcases docopt" COMMAND ${TESTPROG})
+	add_test(NAME Testcases COMMAND ${TESTPROG})
 endif()
 
 #============================================================================
