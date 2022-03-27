@@ -33,14 +33,20 @@ endif()
 # Sources & headers
 #============================================================================
 set(docopt_SOURCES docopt.cpp)
-set(docopt_HEADERS docopt.h docopt_private.h docopt_util.h docopt_value.h)
+set(docopt_HEADERS
+    docopt.h
+    docopt_private.h
+    docopt_util.h
+    docopt_value.h
+)
 
 #============================================================================
 # Compile targets
 #============================================================================
 add_library(docopt ${docopt_SOURCES} ${docopt_HEADERS})
 set_target_properties(
-    docopt PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION_MAJOR}
+    docopt PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION
+                                                 ${PROJECT_VERSION_MAJOR}
 )
 
 target_include_directories(
@@ -68,7 +74,13 @@ if(USE_BOOST_REGEX)
     # This is needed on Linux, where linking a static library into docopt.so
     # fails because boost static libs are not compiled with -fPIC
     set(Boost_USE_STATIC_LIBS OFF)
-    find_package(Boost 1.71 CONFIG REQUIRED COMPONENTS regex)
+    find_package(
+        Boost
+        1.71
+        CONFIG
+        REQUIRED
+        COMPONENTS regex
+    )
     target_link_libraries(docopt PUBLIC Boost::regex)
     target_compile_definitions(docopt PUBLIC DOCTOPT_USE_BOOST_REGEX)
 endif()

@@ -1,0 +1,12 @@
+format:
+  line_width: 79
+  tab_size: 4
+  max_pargs_hwrap: 3
+  separate_ctrl_name_with_space: false
+  separate_fn_name_with_space: false
+  dangle_parens: true
+  line_ending: unix
+markup:
+  bullet_char: "*"
+  enum_char: .
+  enable_markup: false
