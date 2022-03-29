@@ -2,6 +2,10 @@
 //  docopt.h
 //  docopt
 //
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the MIT and/or Boost licenses at your convenience.
+//  See the LICENSE-MIT and LICENSE-Boost-1.0 files for details.
+//
 //  Created by Jared Grubb on 2013-11-03.
 //  Copyright (c) 2013 Jared Grubb. All rights reserved.
 //
