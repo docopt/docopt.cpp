@@ -74,7 +74,7 @@ endif()
 # Tests
 #============================================================================
 if(WITH_TESTS)
-	find_program(PYTHON python REQUIRED)
+	find_program(PYTHON python)
 	set(TESTPROG "${CMAKE_CURRENT_BINARY_DIR}/run_testcase")
 	set(TESTCASES "${PROJECT_SOURCE_DIR}/testcases.docopt")
 	add_executable(run_testcase run_testcase.cpp)
