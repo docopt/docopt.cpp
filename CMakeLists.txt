@@ -90,7 +90,7 @@ endif()
 #============================================================================
 if(WITH_EXAMPLE)
     add_executable(docopt_example examples/naval_fate.cpp)
-    target_link_libraries(docopt_example docopt::docopt)
+    target_link_libraries(docopt_example PRIVATE docopt::docopt)
 endif()
 
 #============================================================================
