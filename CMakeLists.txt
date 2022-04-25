@@ -103,7 +103,7 @@ if(WITH_TESTS)
     set(TESTPROG "${CMAKE_CURRENT_BINARY_DIR}/run_testcase")
     set(TESTCASES "${PROJECT_SOURCE_DIR}/testcases.docopt")
     add_executable(run_testcase run_testcase.cpp)
-    target_link_libraries(run_testcase docopt::docopt)
+    target_link_libraries(run_testcase PRIVATE docopt::docopt)
     configure_file(
         "${PROJECT_SOURCE_DIR}/run_tests.py"
         "${CMAKE_CURRENT_BINARY_DIR}/run_tests" ESCAPE_QUOTES
