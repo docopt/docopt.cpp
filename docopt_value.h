@@ -14,6 +14,8 @@
 #include <functional> // std::hash
 #include <iosfwd>
 #include <stdexcept>
+#include <cstdlib> // std::strtol
+#include <cerrno> // errno, ERANGE
 
 namespace docopt {
 
@@ -51,16 +53,20 @@ namespace docopt {
 		explicit operator bool() const { return kind_ != Kind::Empty; }
 		
 		// Test the type contained by this value object
-		bool isBool()       const { return kind_==Kind::Bool; }
-		bool isString()     const { return kind_==Kind::String; }
-		bool isLong()       const { return kind_==Kind::Long; }
-		bool isStringList() const { return kind_==Kind::StringList; }
+		bool isBool()       const noexcept { return kind_==Kind::Bool; }
+		bool isString()     const noexcept { return kind_==Kind::String; }
+		bool isLong()       const noexcept { return kind_==Kind::Long; }
+		bool isStringList() const noexcept { return kind_==Kind::StringList; }
 
 		// Throws std::invalid_argument if the type does not match
 		bool asBool() const;
+		bool asBoolOr(const bool value) const noexcept;
 		long asLong() const;
+		long asLongOr(const long value) const noexcept;
 		std::string const& asString() const;
+		std::string const& asStringOr(std::string const& value) const noexcept;
 		std::vector<std::string> const& asStringList() const;
+		std::vector<std::string> const&  asStringListOr(std::vector<std::string> const&  value) const noexcept;
 
 		size_t hash() const noexcept;
 		
@@ -275,6 +281,16 @@ namespace docopt {
 	}
 
 	inline
+	bool value::asBoolOr(const bool value) const noexcept
+	{
+		if(!isBool())
+		{
+			return value;
+		}
+		return variant_.boolValue;
+	}
+
+	inline
 	long value::asLong() const
 	{
 		// Attempt to convert a string to a long
@@ -293,6 +309,33 @@ namespace docopt {
 	}
 
 	inline
+	long value::asLongOr(const long value) const noexcept
+	{
+		// Attempt to convert a string to a long
+		if (isString()) {
+			const std::string& str = variant_.strValue;
+			char * str_end;
+			const long ret = std::strtol(str.c_str(), &str_end, 10);
+			// Case 1: No Conversion was possible, return given default value
+			if(str_end == str.c_str() && ret == 0)
+			{
+				return value;
+			}
+			// Case 2: Parsed value is out of range, return given default value
+			if (errno == ERANGE) {
+				return value;
+			}
+			// Case 3: Everything is fine, return parsed value
+			return ret;
+		}
+		if (!isLong())
+		{
+			return value;
+		}
+		return variant_.longValue;
+	}
+
+	inline
 	std::string const& value::asString() const
 	{
 		throwIfNotKind(Kind::String);
@@ -300,9 +343,30 @@ namespace docopt {
 	}
 
 	inline
+	std::string const& value::asStringOr(std::string const& value) const noexcept
+	{
+		if(!isString())
+		{
+			return value;
+		}
+		return variant_.strValue;
+	}
+
+
+	inline
 	std::vector<std::string> const& value::asStringList() const
 	{
 		throwIfNotKind(Kind::StringList);
+		return variant_.strList;
+	}
+
+	inline
+	std::vector<std::string> const&  value::asStringListOr(std::vector<std::string> const&  value) const noexcept
+	{
+		if(!isStringList())
+		{
+			return value;
+		}
 		return variant_.strList;
 	}
 
