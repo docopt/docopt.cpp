@@ -114,6 +114,7 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${ConfigPackageLocation}/docopt-confi
 install(EXPORT ${export_name}
 	DESTINATION "${CMAKE_INSTALL_LIBDIR}/${ConfigPackageLocation}"
 	NAMESPACE Docopt::)
+add_library(Docopt::docopt ALIAS docopt)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docopt.pc.in ${CMAKE_CURRENT_BINARY_DIR}/docopt.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/docopt.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
