@@ -6,8 +6,21 @@ include(GNUInstallDirs)
 #============================================================================
 # Settable options
 #============================================================================
-option(WITH_TESTS "Build tests." OFF)
-option(WITH_EXAMPLE "Build example." OFF)
+
+# Check if docopt is being used directly or via add_subdirectory, but allow
+# overriding
+
+if(NOT DEFINED DOCOPT_MASTER_PROJECT)
+        if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+                set(DOCOPT_MASTER_PROJECT ON)
+        else()
+                set(DOCOPT_MASTER_PROJECT OFF)
+        endif()
+endif()
+
+option(WITH_INSTALL "Generate the install target" ${DOCOPT_MASTER_PROJECT})
+option(WITH_TESTS "Build tests." ${DOCOPT_MASTER_PROJECT})
+option(WITH_EXAMPLE "Build example." ${DOCOPT_MASTER_PROJECT})
 option(USE_BOOST_REGEX "Replace std::regex with Boost.Regex" OFF)
 
 #============================================================================
@@ -88,25 +101,28 @@ endif()
 #============================================================================
 # Install
 #============================================================================
-set(export_name "docopt-targets")
 
-# Runtime package
-install(TARGETS docopt EXPORT ${export_name}
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+if (WITH_INSTALL)
+	set(export_name "docopt-targets")
 
-# Development package
-install(FILES ${docopt_HEADERS} DESTINATION include/docopt)
+	# Runtime package
+	install(TARGETS docopt EXPORT ${export_name}
+		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-# CMake Package
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file("${PROJECT_BINARY_DIR}/docopt-config-version.cmake" COMPATIBILITY SameMajorVersion)
-install(FILES docopt-config.cmake ${PROJECT_BINARY_DIR}/docopt-config-version.cmake DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
-install(EXPORT ${export_name} DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
+	# Development package
+	install(FILES ${docopt_HEADERS} DESTINATION include/docopt)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docopt.pc.in ${CMAKE_CURRENT_BINARY_DIR}/docopt.pc @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/docopt.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+	# CMake Package
+	include(CMakePackageConfigHelpers)
+	write_basic_package_version_file("${PROJECT_BINARY_DIR}/docopt-config-version.cmake" COMPATIBILITY SameMajorVersion)
+	install(FILES docopt-config.cmake ${PROJECT_BINARY_DIR}/docopt-config-version.cmake DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
+	install(EXPORT ${export_name} DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
+
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docopt.pc.in ${CMAKE_CURRENT_BINARY_DIR}/docopt.pc @ONLY)
+	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/docopt.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+endif()
 
 #============================================================================
 # CPack
