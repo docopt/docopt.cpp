@@ -41,7 +41,7 @@ set_target_properties(docopt PROPERTIES
   SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
-target_include_directories(docopt PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/docopt> $<INSTALL_INTERFACE:include/docopt>)
+target_include_directories(docopt PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 if(MSVC AND BUILD_SHARED_LIBS)
     # DOCOPT_DLL: Must be specified when building *and* when using the DLL.
@@ -74,6 +74,8 @@ endif()
 # Tests
 #============================================================================
 if(WITH_TESTS)
+    enable_testing()
+
 	set(TESTPROG "${CMAKE_CURRENT_BINARY_DIR}/run_testcase")
 	set(TESTCASES "${PROJECT_SOURCE_DIR}/testcases.docopt")
 	add_executable(run_testcase run_testcase.cpp)
@@ -98,7 +100,7 @@ install(TARGETS docopt EXPORT ${export_name}
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 # Development package
-install(FILES ${docopt_HEADERS} DESTINATION include/docopt)
+install(FILES ${docopt_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/docopt)
 
 # CMake Package
 include(CMakePackageConfigHelpers)
