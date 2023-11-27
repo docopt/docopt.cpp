@@ -1,4 +1,4 @@
-#include "docopt.h"
+#include "docopt/docopt.h"
 
 #include <iostream>
 
