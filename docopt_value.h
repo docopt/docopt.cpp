@@ -77,7 +77,9 @@ namespace docopt {
 			std::string strValue;
 			std::vector<std::string> strList;
 		};
-		
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-default"
 		static const char* kindAsString(Kind kind) {
 			switch (kind) {
 				case Kind::Empty: return "empty";
@@ -88,6 +90,7 @@ namespace docopt {
 			}
 			return "unknown";
 		}
+#pragma GCC diagnostic pop
 
 		void throwIfNotKind(Kind expected) const {
 			if (kind_ == expected)
