@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(docopt.cpp VERSION 0.6.2)
 
 include(GNUInstallDirs)
+enable_testing()
 
 #============================================================================
 # Settable options
@@ -73,6 +74,7 @@ endif()
 # Tests
 #============================================================================
 if(WITH_TESTS)
+	find_program(PYTHON python)
 	set(TESTPROG "${CMAKE_CURRENT_BINARY_DIR}/run_testcase")
 	set(TESTCASES "${PROJECT_SOURCE_DIR}/testcases.docopt")
 	add_executable(run_testcase run_testcase.cpp)
@@ -82,7 +84,9 @@ if(WITH_TESTS)
 			"${CMAKE_CURRENT_BINARY_DIR}/run_tests"
 			ESCAPE_QUOTES
 	)
-	add_test("Testcases docopt" ${TESTPROG})
+	add_test(NAME Testcases_docopt 
+	COMMAND ${PYTHON} "${CMAKE_CURRENT_BINARY_DIR}/run_tests"
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 endif()
 
 #============================================================================
