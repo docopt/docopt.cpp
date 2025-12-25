@@ -101,8 +101,12 @@ install(FILES ${docopt_HEADERS} DESTINATION include/docopt)
 
 # CMake Package
 include(CMakePackageConfigHelpers)
+configure_package_config_file(
+  docopt-config.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/docopt-config.cmake"
+  INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
 write_basic_package_version_file("${PROJECT_BINARY_DIR}/docopt-config-version.cmake" COMPATIBILITY SameMajorVersion)
-install(FILES docopt-config.cmake ${PROJECT_BINARY_DIR}/docopt-config-version.cmake DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/docopt-config.cmake" ${PROJECT_BINARY_DIR}/docopt-config-version.cmake DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
 install(EXPORT ${export_name} DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docopt.pc.in ${CMAKE_CURRENT_BINARY_DIR}/docopt.pc @ONLY)
