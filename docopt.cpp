@@ -163,16 +163,24 @@ std::vector<T*> flat_filter(Pattern& pattern) {
 }
 
 static std::vector<std::string> parse_section(std::string const& name, std::string const& source) {
+	// There is no a multiline strings concept in std::regex, therefore the symbols `^` and `$` match
+	// only once at the start and at the end of a string, even if this string contains new line
+	// characters. For this reason, following constructions are used instead:
+	// (?:^|\\n) - start of a line;
+	// (?=\\n|$) - end of a line.
+	//
 	// ECMAScript regex only has "?=" for a non-matching lookahead. In order to make sure we always have
 	// a newline to anchor our matching, we have to avoid matching the final newline of each grouping.
-	// Therefore, our regex is adjusted from the docopt Python one to use ?= to match the newlines before
-	// the following lines, rather than after.
+	//
+	// The wildcard `.` matches any single character including the newline character in Boost.Regex. So,
+	// `[^\\n]` construction is used instead.
 	std::regex const re_section_pattern {
-		"(?:^|\\n)"  // anchored at a linebreak (or start of string)
-		"("
-		   "[^\\n]*" + name + "[^\\n]*(?=\\n?)" // a line that contains the name
-		   "(?:\\n[ \\t].*?(?=\\n|$))*"         // followed by any number of lines that are indented
-		")",
+		"(?:^|\\n)("                    // A section begins at start of a line and consists of:
+		  "[^\\n]*" + name + "[^\\n]*"  //  - a line that contains the section's name; and
+		  "(?:"                         //  - several
+		    "\\n+[ \\t][^\\n]*"         // indented lines possibly separated by empty lines.
+		  ")*"
+		")(?=\\n|$)",                   // The section ends at the end of a line.
 		std::regex::icase
 	};
 
