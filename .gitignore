@@ -19,6 +19,9 @@ naval_fate
 run_testcase
 run_testcase.exe
 
+# CMake build directories
+/*build*/
+
 # CMake temporary files
 CMakeCache.txt
 CMakeFiles

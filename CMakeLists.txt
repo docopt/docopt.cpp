@@ -101,9 +101,20 @@ install(FILES ${docopt_HEADERS} DESTINATION include/docopt)
 
 # CMake Package
 include(CMakePackageConfigHelpers)
-write_basic_package_version_file("${PROJECT_BINARY_DIR}/docopt-config-version.cmake" COMPATIBILITY SameMajorVersion)
-install(FILES docopt-config.cmake ${PROJECT_BINARY_DIR}/docopt-config-version.cmake DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
-install(EXPORT ${export_name} DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
+set(ConfigPackageLocation "cmake/docopt")
+# Unix layout, ref https://cmake.org/cmake/help/latest/command/find_package.html#config-mode-search-procedure
+configure_package_config_file(docopt-config.cmake.in
+	"${CMAKE_CURRENT_BINARY_DIR}/${ConfigPackageLocation}/docopt-config.cmake"
+	INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/${ConfigPackageLocation}")
+write_basic_package_version_file("${PROJECT_BINARY_DIR}/${ConfigPackageLocation}/docopt-config-version.cmake"
+	COMPATIBILITY SameMajorVersion)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${ConfigPackageLocation}/docopt-config.cmake"
+	${PROJECT_BINARY_DIR}/${ConfigPackageLocation}/docopt-config-version.cmake
+	DESTINATION "${CMAKE_INSTALL_LIBDIR}/${ConfigPackageLocation}")
+install(EXPORT ${export_name}
+	DESTINATION "${CMAKE_INSTALL_LIBDIR}/${ConfigPackageLocation}"
+	NAMESPACE Docopt::)
+add_library(Docopt::docopt ALIAS docopt)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docopt.pc.in ${CMAKE_CURRENT_BINARY_DIR}/docopt.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/docopt.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
