@@ -9,6 +9,7 @@ include(GNUInstallDirs)
 option(WITH_TESTS "Build tests." OFF)
 option(WITH_EXAMPLE "Build example." OFF)
 option(USE_BOOST_REGEX "Replace std::regex with Boost.Regex" OFF)
+option(PKGCONFIG_RELOCATABLE "Create a pkgconfig file with relocatable path" OFF)
 
 #============================================================================
 # Internal compiler options
@@ -105,6 +106,11 @@ write_basic_package_version_file("${PROJECT_BINARY_DIR}/docopt-config-version.cm
 install(FILES docopt-config.cmake ${PROJECT_BINARY_DIR}/docopt-config-version.cmake DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
 install(EXPORT ${export_name} DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
 
+if(PKGCONFIG_RELOCATABLE)
+	set(PKGCONFIG_PREFIX "\${pcfiledir}/../..")
+else()
+	set(PKGCONFIG_PREFIX "${CMAKE_INSTALL_PREFIX}")
+endif()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docopt.pc.in ${CMAKE_CURRENT_BINARY_DIR}/docopt.pc @ONLY)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/docopt.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 

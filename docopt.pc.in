@@ -1,5 +1,6 @@
-libdir=@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@
-includedir=@CMAKE_INSTALL_PREFIX@/include/docopt
+prefix=@PKGCONFIG_PREFIX@
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/include/docopt
 
 Name: docopt.cpp
 Description: C++11 port of docopt
