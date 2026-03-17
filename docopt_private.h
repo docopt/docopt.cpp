@@ -10,6 +10,7 @@
 #define docopt_docopt_private_h
 
 #include <vector>
+#include <limits>
 #include <memory>
 #include <unordered_set>
 #include <assert.h>
@@ -33,6 +34,16 @@ namespace std {
 #include "docopt_value.h"
 
 namespace docopt {
+
+
+static inline long safe_add_long(long a, long b) {
+    const long LMAX = std::numeric_limits<long>::max();
+    const long LMIN = std::numeric_limits<long>::min();
+    if (b > 0 && a > LMAX - b) return LMAX;
+    if (b < 0 && a < LMIN - b) return LMIN;
+    return a + b;
+}
+
 
 	class Pattern;
 	class LeafPattern;
@@ -450,11 +461,12 @@ namespace docopt {
 		if (getValue().isLong()) {
 			long val = 1;
 			if (same_name == collected.end()) {
-				collected.push_back(match.second);
-				match.second->setValue(value{val});
+			        collected.push_back(match.second);
+			        match.second->setValue(value{val});
 			} else if ((**same_name).getValue().isLong()) {
-				val += (**same_name).getValue().asLong();
-				(**same_name).setValue(value{val});
+			        val = safe_add_long((**same_name).getValue().asLong(), val);
+			        if (val < 0) { val = std::numeric_limits<long>::max(); }
+			        (**same_name).setValue(value{val});
 			} else {
 				(**same_name).setValue(value{val});
 			}
